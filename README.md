@@ -2,7 +2,7 @@
 
 A one-screen command center for a senior-level, network-driven job search, built and run with [Claude Code](https://claude.com/claude-code). Every morning it collects new postings from alert mail, reads each one against a rubric the owner keeps correcting, and puts the survivors on a hosted page. The owner's verdicts, pipeline moves, people and to-dos flow back into one record that every other view is generated from.
 
-**[Open the live demo](https://mfuchs22.github.io/job-search-board/)**: the real page, running on invented data, no sign-in. Click around; verdicts and stage moves work and are forgotten when you reload.
+**[Open the live demo](https://demo.mattfuchs.dev/job-board/)** (also on [GitHub Pages](https://mfuchs22.github.io/job-search-board/)): the real page, running on invented data, no sign-in. Click around; verdicts and stage moves work and are forgotten when you reload.
 
 [![The Overview tab](screenshots/overview.png)](https://mfuchs22.github.io/job-search-board/)
 
