@@ -34,7 +34,7 @@ Four stages, kept deliberately apart:
 - **Review** is the page in `web/`: static files, no build step, deployed anywhere. It reads ten tables from Supabase after sign-in and subscribes to realtime changes, so a phone and a laptop stay in step. Verdicts write straight to a table; stage moves, people and tasks go through three edge functions that write Notion first and mirror the result.
 - **Pursue** closes the loop each morning: fold the verdicts back into the record, run the deep pass on newcomers that cleared the screen, rebuild, push, and post one report to a Discord channel. The reasoning work (outreach plans, prep, follow-ups) happens in a Claude Code session with the vault open.
 
-Collection and dedupe are plumbing (a cron job, later an n8n flow). Scoring, deep passes, outreach plans and rubric revisions need a model reading text. Verdicts need a human. `docs/routines.md` lists every scheduled job and which of the three it is.
+Collection and dedupe are plumbing: a scheduled script, no model in it. Scoring, deep passes, outreach plans and rubric revisions need a model reading text. Verdicts need a human. `docs/routines.md` lists every scheduled job and which of the three it is.
 
 ## The tabs
 

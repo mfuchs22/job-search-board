@@ -20,7 +20,7 @@ Then a provisional score: apply the rubric's gates (hard exclusions, company blo
 
 Every run appends one heartbeat line (date, mail count, rows appended, rows at the floor or above, ok / quiet / failed). The refresh reads it to tell a quiet morning from a dead one.
 
-Guardrails: read the label only; the CSV is append-only; no browsing; blank fields stay blank. Phase 1 is a Gmail trigger, a parser and an append, and is the first thing to move to n8n or a plain script.
+Guardrails: read the label only; the CSV is append-only; no browsing; blank fields stay blank. Phase 1 is a Gmail trigger, a parser and an append; it needs no model and is the first thing to move to a plain scheduled script.
 
 ## The refresh (pursue)
 
