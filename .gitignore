@@ -1,0 +1,8 @@
+# a real deployment's config (the demo config.js is committed on purpose)
+config.json
+__pycache__/
+*.pyc
+Thumbs.db
+.DS_Store
+web/.vercel/
+supabase/.temp/

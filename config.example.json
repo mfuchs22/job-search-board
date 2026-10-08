@@ -1,0 +1,21 @@
+{
+  "vault": "C:/path/to/your/vault",
+  "personal_os": "C:/path/to/your/notes-repo",
+  "dyc_directory": "C:/path/to/an/optional/affinity-directory.csv",
+  "min_score": 7,
+  "dashboard_title": "Job Board",
+  "supabase": {
+    "url": "https://<project-ref>.supabase.co",
+    "service_key": "op://<vault>/<item>/credential  (a 1Password reference, read through the op CLI; a pasted sb_secret_... key also works)"
+  },
+  "review_floor": 8,
+  "notion": {
+    "token_file": "~/.notion_integration_token",
+    "network_data_source": "<Network database data source id>",
+    "tasks_data_source": "<Tasks database data source id, optional>",
+    "opportunities_data_source": "<Opportunities data source id>",
+    "companies_data_source": "<Companies data source id>",
+    "meetings_data_source": "<Meeting Notes data source id>",
+    "board_url": "https://<your-board>.vercel.app"
+  }
+}

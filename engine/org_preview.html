@@ -1,0 +1,146 @@
+<title>__TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#f6f6f8;--surface:#fff;--surface2:#fbfbfd;--border:#e3e3e8;--border2:#ececf0;--chip:#f1f1f4;--text:#1c1c1f;--text2:#3b3b42;--muted:#6f7078;--faint:#9a9ba3;--ghost:#c9cad0;--accent:#4f4fd1;--accent2:#3a3ab0;--accent-soft:#ececf9;--accent-mid:#b9b9ee;--amber:#b0731a;--amber-soft:#fbf1df;--amber-line:#efdcb3;--amber-text:#6b4a0f;--fs-label:11px;--fs-sm:13px;--fs-body:15px;--fs-lg:17px;--fs-xl:22px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#141418;--surface:#1c1c22;--surface2:#202027;--border:#2e2e37;--border2:#26262e;--chip:#2a2a33;--text:#ececf1;--text2:#cfcfd8;--muted:#9a9ba6;--faint:#767783;--ghost:#4a4a55;--accent:#8e8ef0;--accent2:#b4b4f7;--accent-soft:#2b2b52;--accent-mid:#4b4b8c;--amber:#d9a04a;--amber-soft:#2e2515;--amber-line:#4a3a1c;--amber-text:#ebc98a}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#141418;--surface:#1c1c22;--surface2:#202027;--border:#2e2e37;--border2:#26262e;--chip:#2a2a33;--text:#ececf1;--text2:#cfcfd8;--muted:#9a9ba6;--faint:#767783;--ghost:#4a4a55;--accent:#8e8ef0;--accent2:#b4b4f7;--accent-soft:#2b2b52;--accent-mid:#4b4b8c;--amber:#d9a04a;--amber-soft:#2e2515;--amber-line:#4a3a1c;--amber-text:#ebc98a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:var(--fs-body)/1.45 "IBM Plex Sans","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}a:hover{color:var(--accent2);text-decoration:underline}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.mono{font-family:"IBM Plex Mono",Consolas,monospace;font-variant-numeric:tabular-nums}
+.hint{font-size:var(--fs-sm);color:var(--muted)}
+.chip{display:inline-block;padding:1px 7px;border-radius:4px;background:var(--chip);color:var(--text2);font-size:var(--fs-label);white-space:nowrap}
+.chip.k{background:var(--accent-soft);color:var(--accent2)}
+.banner{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;padding:10px 24px;border-bottom:1px solid var(--amber-line);background:var(--amber-soft);color:var(--amber-text);font-size:var(--fs-sm)}
+.banner .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0}.banner b{font-weight:600}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:24px;padding-block:20px 40px;display:flex;flex-direction:column;gap:14px}
+.head{display:flex;flex-direction:column;gap:4px}
+.eyebrow{font-size:var(--fs-label);letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+h1{margin:0;font-size:var(--fs-xl);font-weight:600;text-wrap:balance}
+.head p{margin:0;max-width:72ch;color:var(--text2);font-size:var(--fs-sm)}
+.switch{display:flex;flex-wrap:wrap;gap:6px}
+.switch button{font:inherit;font-size:var(--fs-sm);display:flex;align-items:baseline;gap:6px;padding:6px 12px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--text2);cursor:pointer}
+.switch button:hover{border-color:var(--ghost)}
+.switch button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.switch button .n{font-family:"IBM Plex Mono",Consolas,monospace;font-size:var(--fs-label);opacity:.7}
+.why{font-size:var(--fs-sm);color:var(--muted);margin:0;max-width:80ch}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px}
+.view{padding:16px;min-width:0}
+.panel{padding:16px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;flex-direction:column;gap:8px}
+.panel h2{margin:0;font-size:var(--fs-lg);font-weight:600}
+.panel .t{color:var(--text2);font-size:var(--fs-sm)}
+.panel .note{padding:8px 10px;border-radius:6px;background:var(--accent-soft);color:var(--accent2);font-size:var(--fs-sm)}
+.panel .sum{font-size:var(--fs-sm);color:var(--text2);margin:0}
+.panel dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:0;font-size:var(--fs-sm)}.panel dt{color:var(--faint)}.panel dd{margin:0;color:var(--text2)}
+.nm{font:inherit;font-size:var(--fs-sm);color:var(--text2);background:none;border:none;padding:0 2px;border-radius:4px;cursor:pointer;text-align:left}
+.nm:hover{color:var(--accent);text-decoration:underline}
+.nm.f{background:var(--accent-soft);color:var(--accent2);font-weight:600;padding:0 5px}
+.nm.sel{outline:2px solid var(--accent);outline-offset:1px}
+.known{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:var(--fs-sm)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:var(--fs-label);color:var(--muted);letter-spacing:.03em}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+
+/* 1 ladder */
+.lad{display:flex;flex-direction:column}
+.lad-t{display:grid;grid-template-columns:190px minmax(0,1fr);gap:12px;padding:8px 0;border-top:1px solid var(--border2)}
+.lad-l{font-size:var(--fs-sm);font-weight:600;color:var(--text2)}.lad-l .mono{color:var(--faint);font-weight:400}
+.lad-g{display:flex;flex-wrap:wrap;gap:6px 18px}.lad-d{display:flex;flex-wrap:wrap;gap:2px 6px;align-items:baseline}
+.dl{font-size:var(--fs-label);letter-spacing:.05em;text-transform:uppercase;color:var(--faint);width:100%}
+
+/* 3 grid */
+.gx{overflow-x:auto;border:1px solid var(--border2);border-radius:6px}
+.grid{border-collapse:collapse;min-width:1100px;width:100%;font-size:var(--fs-sm)}
+.grid th,.grid td{border-bottom:1px solid var(--border2);border-right:1px solid var(--border2);padding:6px 8px;vertical-align:top;text-align:left}
+.grid thead th{position:sticky;top:0;background:var(--surface2);font-size:var(--fs-label);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.grid thead th .mono{display:block;color:var(--faint);font-weight:400}
+.grid tbody th{background:var(--surface2);color:var(--text2);font-weight:600;white-space:nowrap;font-size:var(--fs-label);letter-spacing:.03em;text-transform:uppercase}
+.grid td .nm{display:block;padding:1px 4px;margin:1px 0}
+.grid td.hot{background:color-mix(in srgb,var(--accent-soft) 45%,transparent)}
+.grid th.hotc{color:var(--accent2)}
+
+@media (max-width:980px){.layout{grid-template-columns:1fr}.panel{position:static}}
+@media (max-width:640px){.wrap{padding-inline:16px}.banner{padding:10px 16px}.lad-t{grid-template-columns:1fr;gap:4px}}
+@media (prefers-reduced-motion:no-preference){.view{animation:fade .18s ease-out}@keyframes fade{from{opacity:.4}to{opacity:1}}}
+</style>
+
+<div class="banner"><span class="dot"></span><b>Draft, not deployed.</b><span>The same two layouts the job board shows. Nothing reaches the board until the chart is approved.</span></div>
+<div class="wrap">
+ <div class="head">
+  <span class="eyebrow">Job board preview &middot; org chart draft</span>
+  <h1>__COMPANY__</h1>
+  <p id="meta"></p>
+ </div>
+ <div class="known" id="known"></div>
+ <div class="switch" role="group" aria-label="Chart layout" id="switch"></div>
+ <p class="why" id="why"></p>
+ <div class="layout">
+  <div class="card view" id="view"></div>
+  <aside class="card panel" id="panel" aria-live="polite"></aside>
+ </div>
+</div>
+
+<script>
+const ORG=__DATA__;
+const P=ORG.people;
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const KIND={process:"in the process",vault:"people page",network:"Network",linkedin:"1st degree",profiled:"researched"};
+const KO=Object.keys(KIND);
+const TIERS=ORG.tiers;const TL={};TIERS.forEach((t,i)=>TL[t.key]=i);
+const rowOf=p=>p.head?"heads":p.tier;
+const SHORT={"Portfolio Operations & Operating Partners":"Portfolio Ops","Human Capital Management":"Human Capital","Information Technology":"IT","Legal & Compliance":"Legal","Investor Relations":"Investor Relations","Investment Team":"Investment Team","Senior Advisors":"Senior Advisors"};
+const sh=d=>SHORT[d]||d;
+const TSHORT={chair:"Founder",heads:"C-suite / heads",smd:"Senior MD",md:"MD",principal:"Director / Principal",vp:"VP",sr_assoc:"Sr Associate",assoc:"Associate",analyst:"Analyst",staff:"Staff",advisors:"Advisors"};
+P.forEach((p,i)=>p.i=i);
+const flagged=P.filter(p=>p.flag).sort((a,b)=>rank(a)-rank(b)||TL[rowOf(a)]-TL[rowOf(b)]);
+function rank(p){return Math.min(...(p.flag.kinds||[]).map(k=>KO.indexOf(k)).filter(i=>i>=0),KO.length);}
+const DSIZE={};P.forEach(p=>DSIZE[p.department]=(DSIZE[p.department]||0)+1);
+P.forEach(p=>p.group=DSIZE[p.department]<3?"Other":p.department); /* one-person teams (Founder, Public Equity, Senior Advisors) fold into Other in the grid and the radial */
+const byCount=k=>[...new Set(P.map(p=>p[k]))].sort((a,b)=>(a==="Other")-(b==="Other")||P.filter(p=>p[k]===b).length-P.filter(p=>p[k]===a).length);
+const DEPTS=byCount("department"),GROUPS=byCount("group");
+const OFFICES=[...new Set(P.map(p=>p.office).filter(Boolean))];
+const hotDepts=new Set(flagged.filter(p=>p.flag.kinds.includes("process")).map(p=>p.group));
+
+let sel=(flagged[0]||P[0]).i;
+const nm=p=>`<button type="button" class="nm${p.flag?" f":""}${p.i===sel?" sel":""}" data-i="${p.i}" title="${esc(p.title)}">${esc(p.name)}</button>`;
+
+document.getElementById("meta").innerHTML=`<span class="mono">${P.length}</span> people from <a href="${esc(ORG.sources[0])}" target="_blank" rel="noopener">${esc(ORG.sources[0].replace(/^https?:\/\/(www\.)?/,""))}</a>, read ${new Date(ORG.fetched_at).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}. Highlighted names are the <span class="mono">${flagged.length}</span> people your search already knows. The site shows no reporting lines, so every layout ranks by title rather than drawing who reports to whom. Click any name for detail.`;
+document.getElementById("known").innerHTML=`<span class="eyebrow">Known to the search</span>`+flagged.map(nm).join("")+((ORG.not_on_site||[]).length?`<span class="hint">&middot; not on the site: ${ORG.not_on_site.map(esc).join(", ")}</span>`:"");
+
+/* ---------- 1 ladder: the current board card ---------- */
+function vLadder(){
+  const rows={};P.forEach(p=>{const k=rowOf(p);(rows[k]=rows[k]||{});(rows[k][p.department]=rows[k][p.department]||[]).push(p);});
+  return`<div class="lad">${TIERS.filter(t=>rows[t.key]).map(t=>{const g=rows[t.key];const n=Object.values(g).reduce((a,b)=>a+b.length,0);
+    return`<div class="lad-t"><div class="lad-l">${esc(t.label)} <span class="mono">${n}</span></div><div class="lad-g">${Object.keys(g).sort().map(d=>`<div class="lad-d"><span class="dl">${esc(d)}</span>${g[d].map(nm).join("")}</div>`).join("")}</div></div>`;}).join("")}</div>`;}
+
+/* ---------- 3 grid: departments across, seniority down ---------- */
+function vGrid(){
+  const cols=GROUPS;const rows=TIERS.filter(t=>P.some(p=>rowOf(p)===t.key));
+  const cell=(t,d)=>P.filter(p=>rowOf(p)===t.key&&p.group===d);
+  return`<div class="gx"><table class="grid"><thead><tr><th scope="col">Seniority</th>${cols.map(d=>`<th scope="col" class="${hotDepts.has(d)?"hotc":""}">${esc(sh(d))}<span class="mono">${P.filter(p=>p.group===d).length}</span></th>`).join("")}</tr></thead><tbody>${
+    rows.map(t=>`<tr><th scope="row">${esc(TSHORT[t.key])}</th>${cols.map(d=>{const ps=cell(t,d);return`<td class="${ps.some(p=>p.flag)?"hot":""}">${ps.map(nm).join("")}</td>`;}).join("")}</tr>`).join("")}</tbody></table></div>`;}
+
+/* ---------- switch, panel ---------- */
+const VIEWS=[
+ {id:"ladder",label:"Tier list",why:"Seniority rows, department groups inside each row. Reads top to bottom.",html:vLadder},
+ {id:"grid",label:"Team grid",why:"Departments across, seniority down. Answers who runs each team and who sits under them. Tinted cells hold someone you know; tinted headers are teams in your process. Scrolls sideways on a phone.",html:vGrid},
+];
+let cur="ladder";
+try{const h=location.hash.slice(1),s=localStorage.getItem("org-view");cur=VIEWS.some(v=>v.id===h)?h:VIEWS.some(v=>v.id===s)?s:cur;}catch(e){}
+function drawSwitch(){document.getElementById("switch").innerHTML=VIEWS.map((v,i)=>`<button type="button" data-v="${v.id}" aria-pressed="${v.id===cur}"><span class="n">${i+1}</span>${esc(v.label)}</button>`).join("");}
+function render(){const v=VIEWS.find(x=>x.id===cur);drawSwitch();document.getElementById("why").textContent=v.why;
+  document.getElementById("view").innerHTML=v.html();if(v.after)v.after();}
+function panel(){const p=P[sel];const f=p.flag;
+  document.getElementById("panel").innerHTML=`<span class="eyebrow">${esc(TSHORT[rowOf(p)])} &middot; ${esc(sh(p.department))}</span><h2>${esc(p.name)}</h2><div class="t">${esc(p.title)}</div>
+   ${f?`<div class="known">${(f.kinds||[]).map(k=>`<span class="chip k">${esc(KIND[k]||k)}</span>`).join("")}</div>${f.line?`<div class="note">${esc(f.line)}</div>`:""}`:""}
+   <dl>${p.office?`<dt>Office</dt><dd>${esc((p.offices||[p.office]).join(", "))}</dd>`:""}${p.joined?`<dt>Joined</dt><dd class="mono">${esc(p.joined)}</dd>`:""}<dt>Teams</dt><dd>${esc((p.departments||[]).join(", ")||p.department)}</dd></dl>
+   ${p.summary?`<p class="sum">${esc(p.summary)}</p>`:""}<a href="${esc(p.url)}" target="_blank" rel="noopener">Bio on ${esc(ORG.sources[0].replace(/^https?:\/\/(www\.)?/,"").split("/")[0])}</a>`;}
+function pick(i){sel=i;panel();
+  document.querySelectorAll("[data-i]").forEach(el=>el.classList.toggle("sel",+el.dataset.i===i));}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-v]");if(b){cur=b.dataset.v;try{localStorage.setItem("org-view",cur);}catch(x){}render();return;}
+  const n=e.target.closest("[data-i]");if(n)pick(+n.dataset.i);});
+render();panel();
+</script>
