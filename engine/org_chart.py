@@ -415,6 +415,16 @@ def flag_chart(chart, marks):
     return chart
 
 
+def with_structure(cfg, site, chart):
+    """The chart plus `structure` when the vault holds research/<slug>/org-structure.json: a hand-placed layout of
+    who reports to whom, read from the bios (clusters, person boxes keyed by bio slug, lines marked stated, inferred or
+    works-with). The board draws it as the org card's Structure view. Read-only from the vault, never copied here."""
+    f = Path(cfg["vault"]) / "research" / site["slug"] / "org-structure.json"
+    if f.exists():
+        chart["structure"] = json.loads(f.read_text(encoding="utf-8"))
+    return chart
+
+
 def push_all(cfg):
     """Every saved chart, flagged, into board_meta `org_charts` keyed by company_key. Returns a one-line report."""
     import supabase as sb
@@ -426,7 +436,7 @@ def push_all(cfg):
         if ch.get("status") != "approved":  # the draft gate: the owner has not seen and passed this chart
             held.append(site["slug"])
             continue
-        charts[site["key"]] = flag_chart(ch, vault_marks(cfg, site))
+        charts[site["key"]] = with_structure(cfg, site, flag_chart(ch, vault_marks(cfg, site)))
     tail = f"; held as drafts: {', '.join(held)}" if held else ""
     if not charts:
         return "org charts: none approved" + tail

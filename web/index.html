@@ -218,7 +218,8 @@ a.pill.lnk{display:inline-block;border-radius:999px;padding:2px 10px;border:1px 
 .card{padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px}
 .card.dash{border-style:dashed;color:var(--faint)}
 .org-wrap{padding:0 32px 20px}.pane .org-wrap{padding:0 28px 20px}
-.org-who{display:flex;flex-direction:column;gap:4px;margin:4px 0}.org-w{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(160px,1.6fr) minmax(0,3fr);gap:10px;align-items:baseline;padding:3px 0;border-bottom:1px solid var(--border2)}
+.org-who{display:flex;flex-direction:column;gap:4px;margin:4px 0}.org-w{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(160px,1.6fr) minmax(0,3fr) auto;gap:10px;align-items:baseline;padding:3px 0;border-bottom:1px solid var(--border2)}
+.org-mh{margin:12px 0 2px;font-size:var(--fs-label);letter-spacing:.05em;text-transform:uppercase;color:var(--faint);font-weight:600}.org-w .org-hb{justify-self:end;align-self:center}.org-wh{opacity:.75}.org-hid summary{cursor:pointer;color:var(--muted);font-size:var(--fs-sm);margin-top:4px}.org-add{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}.org-add input{font:inherit;font-size:var(--fs-sm);padding:5px 9px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);min-width:0;flex:1 1 220px}.org-add input:focus-visible,.org-add button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}.org-add button{font-size:var(--fs-sm)}
 .org-x summary{cursor:pointer;color:var(--accent);font-size:var(--fs-sm);margin-top:4px}.org-c{display:flex;flex-direction:column;margin-top:8px}
 .org-t{display:grid;grid-template-columns:190px minmax(0,1fr);gap:12px;padding:8px 0;border-top:1px solid var(--border2)}.org-l{font-size:var(--fs-sm);font-weight:600;color:var(--text2)}.org-l .mono{color:var(--faint);font-weight:400}
 .org-g{display:flex;flex-wrap:wrap;gap:6px 18px}.org-d{display:flex;flex-wrap:wrap;gap:2px 8px;align-items:baseline;max-width:100%}.org-dl{font-size:var(--fs-label);letter-spacing:.05em;text-transform:uppercase;color:var(--faint);width:100%}
@@ -237,6 +238,20 @@ a.pill.lnk{display:inline-block;border-radius:999px;padding:2px 10px;border:1px 
 .lv-t{font-size:var(--fs-xl);font-weight:600;line-height:1.2}.lv-st{display:flex;flex-direction:column;align-items:flex-end;gap:3px;max-width:420px;text-align:right}
 .lv-ro{font-size:var(--fs-label);color:var(--faint)}.cp-stamp0{margin-top:-6px}
 .lv-org .org-wrap,.lv-org0 .org-wrap{padding:0}
+/* Structure view: who reports to whom, read from the bios (engine/org_chart.py with_structure) */
+:root{--st-top:#fff4d6;--st-quiet:#f1f1f4;--st-pe:#ececf9;--st-cr:#e4f2f6;--st-pr:#e6f5ec;--st-ir:#fbf1df;--st-ops:#f2edfa}
+.org-st{position:relative;margin-top:8px;border:1px solid var(--border2);border-radius:8px;background:var(--surface2);overflow:hidden}
+.org-st-c{width:100%;max-height:72vh;min-height:360px;touch-action:none;cursor:grab}.org-st a,.org-st a:hover{text-decoration:none}.org-st-c.drag{cursor:grabbing}
+.org-st svg{width:100%;height:100%;display:block;user-select:none;font-family:"IBM Plex Sans","Segoe UI",system-ui,sans-serif}
+.org-st-bar{position:absolute;top:8px;right:8px;display:flex;gap:6px;z-index:2}.org-st-bar button{font-size:var(--fs-sm);padding:3px 9px;background:var(--surface)}
+.org-st-key{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:var(--fs-sm);color:var(--muted);margin:8px 0 0}.org-st-key span{display:inline-flex;align-items:center;gap:6px}
+.org-st-key i{display:inline-block;width:26px;border-top:2px solid var(--text2)}.org-st-key i.dash{border-top:1.5px dashed var(--text2)}.org-st-key i.dot{border-top:2px dotted var(--accent)}
+.org-st-key b{display:inline-block;width:12px;height:12px;border-radius:3px;background:var(--accent-soft);border:1px solid var(--accent)}
+.org-st .st-p{cursor:pointer}.org-st .st-p:hover rect,.org-st .st-p:focus rect{stroke:var(--accent);stroke-width:2}.org-st .st-p:focus{outline:none}
+.org-st.hov .st-e{opacity:.12}.org-st.hov .st-e.lit{opacity:1}.org-st.hov .st-e.lit path{stroke-width:2.6}
+.org-st.full{position:fixed;inset:0;z-index:60;margin:0;border-radius:0;background:var(--bg)}.org-st.full .org-st-c{height:100%;max-height:none;min-height:0;aspect-ratio:auto!important}
+.org-st.full .org-st-bar{top:calc(10px + env(safe-area-inset-top,0px));right:calc(10px + env(safe-area-inset-right,0px))}
+@media (prefers-reduced-motion:no-preference){.org-st .st-e{transition:opacity .15s}}
 .cp-hero{border-color:var(--accent);background:var(--accent-soft);display:flex;flex-direction:column;gap:4px}
 .cp-hero h4{color:var(--accent2)}.cp-big{font-size:var(--fs-xl);font-weight:600;line-height:1.2;text-wrap:balance}.cp-hero.big .cp-big{font-size:var(--fs-2xl)}
 .cp-count{font-size:var(--fs-lg)}.cp-count b{color:var(--accent2)}.cp-before{font-size:var(--fs-sm);color:var(--text2);margin-top:4px}
@@ -312,7 +327,7 @@ a.pill.lnk{display:inline-block;border-radius:999px;padding:2px 10px;border:1px 
 .wr{display:flex;flex-direction:column;gap:12px}.wr-col{display:flex;flex-direction:column;gap:12px}
 @media (max-width:900px){.lv{padding:12px 14px 24px}.lv-head{grid-template-columns:1fr}
  .cp-2{grid-template-columns:1fr}.lv-st{align-items:flex-start;text-align:left}.cp-day{grid-template-columns:1fr;gap:4px}}
-@media (max-width:900px){.org-wrap{padding:0 16px 16px}.org-t{grid-template-columns:1fr;gap:4px}.org-w{grid-template-columns:1fr;gap:0}}
+@media (max-width:900px){.org-wrap{padding:0 16px 16px}.org-t{grid-template-columns:1fr;gap:4px}.org-w{grid-template-columns:1fr;gap:0}.org-w .org-hb{justify-self:start;margin-top:4px}}
 .doc{font-size:var(--fs-body);color:var(--text2)}.doc h2,.doc h3{font-size:var(--fs-label);margin:10px 0 4px;color:var(--faint);letter-spacing:.05em;text-transform:uppercase}.doc table{border-collapse:collapse;width:100%}.doc td,.doc th{border-bottom:1px solid var(--border2);padding:4px 6px;text-align:left;vertical-align:top}.doc p{margin:4px 0}
 .gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:20}
 .login{display:flex;flex-direction:column;gap:10px;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:10px;width:340px;max-width:92vw}
@@ -646,12 +661,12 @@ function applyOpp(o){if(!o||!o.id)return;OPPS[o.id]=o;const s=fb(o.id);Object.as
 function applyVerdictRow(x){const s=fb(x.id);if(tsNum(x.ts)>tsNum(s.vts))Object.assign(s,{v:x.v||"",cal:x.cal||"",note:x.note||"",flag:!!x.flag,vts:x.ts});}
 let VIEWS={};
 async function loadBoard(){
-  const [j,m,v,ct,op,mt,sr,tk,stp,svr]=await Promise.all([sb.from("jobs").select("id,payload"),sb.from("board_meta").select("key,payload"),sb.from("verdicts").select("*"),sb.from("contacts").select("id,payload"),sb.from("opportunities").select("id,payload"),sb.from("meetings").select("id,payload"),sb.from("sync_requests").select("*").order("requested_at",{ascending:false}).limit(1),sb.from("tasks").select("id,payload"),sb.from("startups").select("id,payload"),sb.from("startup_verdicts").select("*")]);
+  const [j,m,v,ct,op,mt,sr,tk,stp,svr,ow]=await Promise.all([sb.from("jobs").select("id,payload"),sb.from("board_meta").select("key,payload"),sb.from("verdicts").select("*"),sb.from("contacts").select("id,payload"),sb.from("opportunities").select("id,payload"),sb.from("meetings").select("id,payload"),sb.from("sync_requests").select("*").order("requested_at",{ascending:false}).limit(1),sb.from("tasks").select("id,payload"),sb.from("startups").select("id,payload"),sb.from("startup_verdicts").select("*"),sb.from("org_watch").select("*")]);
   const err=j.error||m.error||v.error;
   if(err){setSync("err","load failed: "+err.message);return false;}
   JOBS=(j.data||[]).map(r=>r.payload);byId={};JOBS.forEach(x=>byId[x.id]=x);
   const meta={};(m.data||[]).forEach(r=>meta[r.key]=r.payload);
-  SUMMARY=meta.summary||{};VIEWS=meta.views||{};COMPANIES=meta.companies||{};ORGS=meta.org_charts||{};STAGE_HIST=(meta.stage_history||{}).roles||{};PULSE=(meta.pulse_history||{}).days||{};PATHS=meta.paths||{};
+  SUMMARY=meta.summary||{};VIEWS=meta.views||{};COMPANIES=meta.companies||{};ORGS=meta.org_charts||{};WATCH={};(ow&&!ow.error?ow.data||[]:[]).forEach(applyWatch);STAGE_HIST=(meta.stage_history||{}).roles||{};PULSE=(meta.pulse_history||{}).days||{};PATHS=meta.paths||{};
   NPAGES=meta.network_pages||{};CONTACTS=ct.error?[]:(ct.data||[]).map(r=>r.payload);
   if(typeof loadStartups==="function")loadStartups(stp.error?[]:stp.data,meta.startups_summary,svr.error?[]:svr.data); /* the Startups tab (startups.js), optional like the mirrors */ /* the Notion mirrors are optional: the board loads without them */
   OPPS={};(op.error?[]:(op.data||[])).forEach(r=>{if(r.payload&&r.payload.id)OPPS[r.payload.id]=r.payload;});
@@ -666,6 +681,7 @@ async function loadBoard(){
 }
 let reloadT=null;function scheduleReload(){clearTimeout(reloadT);reloadT=setTimeout(async()=>{if(await loadBoard())render();},1500);}
 function subscribe(){
+  sb.channel("orgwatch").on("postgres_changes",{event:"*",schema:"public",table:"org_watch"},p=>{if(p.new&&applyWatch(p.new))render();}).subscribe();
   sb.channel("board")
     .on("postgres_changes",{event:"*",schema:"public",table:"verdicts"},p=>{if(p.new&&p.new.id){applyVerdictRow(p.new);render();}})
     .on("postgres_changes",{event:"*",schema:"public",table:"jobs"},scheduleReload)
@@ -1474,30 +1490,59 @@ function viewDetail(id,opts){opts=opts||{};const j=byId[id];if(!j)return'<div cl
 const ORG_KIND={process:"in the process",vault:"people page",network:"Network",linkedin:"1st degree",profiled:"researched"};
 function orgOf(j){return ORGS[ckey(j)]||ORGS[j.company]||null;}
 function orgCard(j,opt){const o=orgOf(j);if(!o||!(o.people||[]).length)return"";
+  const key=orgKey(j),W=WATCH[key]||{},st=n=>(W[String(n).toLowerCase()]||{}).state||"";
+  const on=p=>st(p.name)==="added"||(!!p.flag&&st(p.name)!=="hidden"); /* the people that matter: the vault's flags, minus what the owner hid, plus what he added */
   const rows={};o.people.forEach(p=>{const k=p.head?"heads":p.tier,d=p.department||"Unlisted";rows[k]=rows[k]||{};(rows[k][d]=rows[k][d]||[]).push(p);});
-  const tip=p=>[p.title,p.office,p.joined?"joined "+p.joined:"",p.flag&&p.flag.line].filter(Boolean).join(" \u00b7 ");
-  const nm=p=>`<a class="org-n${p.flag?" org-f":""}" href="${esc(p.url||"")}" target="_blank" rel="noopener" title="${esc(tip(p))}">${esc(p.name)}</a>`;
+  const tip=p=>[p.title,p.office,p.joined?"joined "+p.joined:"",p.flag&&p.flag.line].filter(Boolean).join(" · ");
+  const nm=p=>`<a class="org-n${on(p)?" org-f":""}" href="${esc(p.url||"")}" target="_blank" rel="noopener" title="${esc(tip(p))}">${esc(p.name)}</a>`;
   const tiers=(o.tiers||[]).filter(t=>rows[t.key]).map(t=>{const g=rows[t.key];const n=Object.values(g).reduce((a,b)=>a+b.length,0);
     return`<div class="org-t"><div class="org-l">${esc(t.label)} <span class="mono">${n}</span></div><div class="org-g">${Object.keys(g).sort().map(d=>`<div class="org-d"><span class="org-dl">${esc(d)}</span>${g[d].map(nm).join("")}</div>`).join("")}</div></div>`;}).join("");
-  const grid=orgGrid(o,nm);
-  const KO=Object.keys(ORG_KIND),kr=p=>Math.min(...(p.flag.kinds||[]).map(k=>KO.indexOf(k)).filter(i=>i>=0),KO.length);
-  const fl=o.people.filter(p=>p.flag).sort((a,b)=>kr(a)-kr(b)); /* in the process first, researched-only last; tier order within */
-  const who=fl.length?`<div class="org-who">${fl.map(p=>`<div class="org-w"><span>${nm(p)}</span><span class="hint">${esc(p.title||"")}${p.office?" \u00b7 "+esc(p.office):""}</span><span>${p.flag.line?esc(p.flag.line):""} ${(p.flag.kinds||[]).map(k=>`<span class="chip">${esc(ORG_KIND[k]||k)}</span>`).join(" ")}</span></div>`).join("")}</div>`:"";
-  const gone=(o.not_on_site||[]).length?`<div class="hint">Named in the research but not on the site: ${o.not_on_site.map(esc).join(", ")}</div>`:"";
-  const src=(o.sources||[])[0]||"";
-  return`<div class="org-wrap"><div class="sec card org"><h4>Org chart</h4><div class="hint"><span class="mono">${o.count||o.people.length}</span> people on ${src?`<a href="${esc(src)}" target="_blank" rel="noopener">${esc(src.replace(/^https?:\/\/(www\.)?/,""))}</a>`:"the company site"}, read ${fmtDate(o.fetched_at)}${fl.length?` \u00b7 <span class="mono">${fl.length}</span> known to the search, highlighted`:""}. Titles as the site gives them; tiers inferred from the title.</div>
-    ${who}${gone}<details class="org-x"${fl.length&&!(opt&&opt.open)?"":" open"}><summary>The whole chart, by tier and department</summary>
-    <div class="org-sw">${[["tiers","Tier list"],["grid","Team grid"]].map(([k,l])=>`<button class="pill${ORG_VIEW===k?" on":""}" onclick="setOrgView('${k}',this)">${l}</button>`).join("")}</div>
-    <div class="org-c" data-orgv="tiers"${ORG_VIEW==="tiers"?"":" hidden"}>${tiers}</div><div data-orgv="grid"${ORG_VIEW==="grid"?"":" hidden"}>${grid}</div></details></div></div>`;}
+  const grid=orgGrid(o,nm,on);
+  const KO=Object.keys(ORG_KIND),kr=p=>p.flag?Math.min(...(p.flag.kinds||[]).map(k=>KO.indexOf(k)).filter(i=>i>=0),KO.length):KO.length;
+  const roster={};o.people.forEach(p=>roster[p.name.toLowerCase()]=p);
+  const fl=o.people.filter(on).sort((a,b)=>kr(a)-kr(b)); /* in the process first, researched-only last, added last; tier order within */
+  const extra=Object.values(W).filter(r=>r.state==="added"&&!roster[r.name.toLowerCase()]);
+  const hid=o.people.filter(p=>p.flag&&st(p.name)==="hidden");
+  const btn=(n,s,l)=>`<button type="button" class="pill org-hb" data-ow="${esc(n)}" data-os="${s}" onclick="orgWatch(this)">${l}</button>`;
+  const line=p=>{const r=W[p.name.toLowerCase()];return r&&r.state==="added"&&r.note?esc(r.note):p.flag&&p.flag.line?esc(p.flag.line):"";};
+  const chips=p=>(p.flag?(p.flag.kinds||[]).map(k=>`<span class="chip">${esc(ORG_KIND[k]||k)}</span>`).join(" "):"")+(st(p.name)==="added"?' <span class="chip">added</span>':"");
+  const who=fl.map(p=>`<div class="org-w"><span>${nm(p)}</span><span class="hint">${esc(p.title||"")}${p.office?" · "+esc(p.office):""}</span><span>${line(p)} ${chips(p)}</span>${btn(p.name,p.flag?"hidden":"","Hide")}</div>`).join("")
+    +extra.map(r=>`<div class="org-w"><span><span class="org-n org-f">${esc(r.name)}</span></span><span class="hint">Not on the firm's site</span><span>${esc(r.note||"")} <span class="chip">added</span></span>${btn(r.name,"","Hide")}</div>`).join("");
+  const hidden=hid.length?`<details class="org-hid"><summary>${hid.length} hidden</summary>${hid.map(p=>`<div class="org-w org-wh"><span>${esc(p.name)}</span><span class="hint">${esc(p.title||"")}</span><span>${p.flag.line?esc(p.flag.line):""}</span>${btn(p.name,"","Show")}</div>`).join("")}</details>`:"";
+  const dl="orgdl-"+key.replace(/[^a-z0-9]+/gi,"-");
+  const add=`<form class="org-add" onsubmit="orgAdd(event,this)"><input name="n" list="${dl}" placeholder="Add someone: a name from the chart, or anyone" autocomplete="off" required aria-label="Add a person"><input name="t" placeholder="Why they matter (optional)" aria-label="Why they matter"><button type="submit">Add</button><datalist id="${dl}">${o.people.filter(p=>!on(p)).map(p=>`<option value="${esc(p.name)}">${esc(p.title||"")}</option>`).join("")}</datalist></form>`;
+  const offsite=(o.not_on_site||[]).filter(n=>!extra.some(r=>r.name.toLowerCase()===n.toLowerCase()));
+  const gone=offsite.length?`<div class="hint">Named in the research but not on the site: ${offsite.map(esc).join(", ")}</div>`:"";
+  const n=fl.length+extra.length;
+  const src=(o.sources||[])[0]||"";const ov=ORG_VIEW==="structure"&&!o.structure?"tiers":(ORG_VIEW||(o.structure?"structure":"tiers"));
+  return`<div class="org-wrap" data-ok="${esc(key)}"><div class="sec card org"><h4>Org chart</h4><div class="hint"><span class="mono">${o.count||o.people.length}</span> people on ${src?`<a href="${esc(src)}" target="_blank" rel="noopener">${esc(src.replace(/^https?:\/\/(www\.)?/,""))}</a>`:"the company site"}, read ${fmtDate(o.fetched_at)}${n?` · <span class="mono">${n}</span> that matter, highlighted`:""}. Titles as the site gives them.</div>
+    <div class="org-mh">People that matter <span class="mono">${n}</span></div><div class="org-who">${who}</div>${hidden}${add}${gone}<details class="org-x"${n&&!(opt&&opt.open)?"":" open"}><summary>The whole chart</summary>
+    <div class="org-sw">${(o.structure?[["structure","Structure"]]:[]).concat([["tiers","Tier list"],["grid","Team grid"]]).map(([k,l])=>`<button class="pill${ov===k?" on":""}" onclick="setOrgView('${k}',this)">${l}</button>`).join("")}</div>
+    ${o.structure?`<div data-orgv="structure"${ov==="structure"?"":" hidden"}>${orgStructure(o,on)}</div>`:""}<div class="org-c" data-orgv="tiers"${ov==="tiers"?"":" hidden"}>${tiers}</div><div data-orgv="grid"${ov==="grid"?"":" hidden"}>${grid}</div></details></div></div>`;}
+/* People that matter (the owner, 2026-10-19): Supabase org_watch, one row per company and person, written here as the signed-in
+   owner. 'hidden' drops one of the vault's flagged people from the list, 'added' puts anyone on it (a chart name or someone
+   off the site, with a note), '' restores the default. Highlights in all three views follow the list. Live across devices. */
+let WATCH={};
+function applyWatch(r){if(!r||!r.company)return;const m=WATCH[r.company]=WATCH[r.company]||{},k=r.name.toLowerCase(),cur=m[k];
+  if(cur&&Date.parse(cur.ts)>=Date.parse(r.ts))return false;m[k]=r;return true;}
+const orgKey=j=>ORGS[ckey(j)]?ckey(j):j.company;
+function orgRefresh(key){document.querySelectorAll(".org-wrap[data-ok]").forEach(w=>{if(w.dataset.ok!==key)return;const d=w.querySelector("details.org-x");
+  const t=document.createElement("div");t.innerHTML=orgCard({company:key},{open:!!(d&&d.open)});if(t.firstElementChild)w.replaceWith(t.firstElementChild);});}
+async function orgWatchWrite(company,name,state,note){const r={id:company+"|"+name.toLowerCase(),company,name,state,note:note||null,ts:new Date().toISOString()};
+  applyWatch(r);orgRefresh(company);const {error}=await sb.from("org_watch").upsert(r);if(error)setSync("err","not saved: "+error.message);}
+function orgWatch(b){orgWatchWrite(b.closest(".org-wrap").dataset.ok,b.dataset.ow,b.dataset.os);}
+function orgAdd(e,f){e.preventDefault();const k=f.closest(".org-wrap").dataset.ok,n=f.n.value.trim();if(!n)return;
+  const hit=((ORGS[k]||{}).people||[]).find(p=>p.name.toLowerCase()===n.toLowerCase());orgWatchWrite(k,hit?hit.name:n,"added",f.t.value.trim());}
 /* Two layouts (the owner, 2026-09-24): the tier list, and the team grid (departments across, seniority down; one-person
    teams fold into Other; tinted cells hold someone the search knows, tinted headers are teams in the process). */
-let ORG_VIEW="tiers";try{ORG_VIEW=localStorage.getItem("orgView")==="grid"?"grid":"tiers";}catch(e){}
-function setOrgView(v,btn){ORG_VIEW=v;try{localStorage.setItem("orgView",v);}catch(e){}
+let ORG_VIEW=null;try{const v=localStorage.getItem("orgView2");if(["tiers","grid","structure"].includes(v))ORG_VIEW=v;}catch(e){}
+function setOrgView(v,btn){ORG_VIEW=v;try{localStorage.setItem("orgView2",v);}catch(e){}
   const card=btn.closest(".org");card.querySelectorAll("[data-orgv]").forEach(el=>el.hidden=el.dataset.orgv!==v);
-  card.querySelectorAll(".org-sw button").forEach(b=>b.classList.toggle("on",b===btn));}
+  card.querySelectorAll(".org-sw button").forEach(b=>b.classList.toggle("on",b===btn));
+  if(v==="structure")card.querySelectorAll(".org-st").forEach(stFit);}
 const ORG_TSHORT={chair:"Founder",heads:"C-suite / heads",smd:"Senior MD",md:"MD",principal:"Director / Principal",vp:"VP",sr_assoc:"Sr Associate",assoc:"Associate",analyst:"Analyst",staff:"Staff",advisors:"Advisors"};
 const ORG_DSHORT={"Portfolio Operations & Operating Partners":"Portfolio Ops","Human Capital Management":"Human Capital","Information Technology":"IT","Legal & Compliance":"Legal"};
-function orgGrid(o,nm){const P=o.people,row=p=>p.head?"heads":p.tier,size={};
+function orgGrid(o,nm,on){on=on||(p=>!!p.flag);const P=o.people,row=p=>p.head?"heads":p.tier,size={};
   P.forEach(p=>{const d=p.department||"Unlisted";size[d]=(size[d]||0)+1;});
   const grp=p=>{const d=p.department||"Unlisted";return size[d]<3?"Other":d;};
   const cnt={};P.forEach(p=>cnt[grp(p)]=(cnt[grp(p)]||0)+1);
@@ -1505,7 +1550,72 @@ function orgGrid(o,nm){const P=o.people,row=p=>p.head?"heads":p.tier,size={};
   const hot=new Set(P.filter(p=>p.flag&&(p.flag.kinds||[]).includes("process")).map(grp));
   const rows=(o.tiers||[]).filter(t=>P.some(p=>row(p)===t.key));
   return`<div class="org-gx"><table class="org-grid"><thead><tr><th>Seniority</th>${cols.map(d=>`<th class="${hot.has(d)?"hot":""}">${esc(ORG_DSHORT[d]||d)}<span class="mono">${cnt[d]}</span></th>`).join("")}</tr></thead><tbody>${
-    rows.map(t=>`<tr><th>${esc(ORG_TSHORT[t.key]||t.label)}</th>${cols.map(d=>{const ps=P.filter(p=>row(p)===t.key&&grp(p)===d);return`<td class="${ps.some(p=>p.flag)?"hot":""}">${ps.map(nm).join("")}</td>`;}).join("")}</tr>`).join("")}</tbody></table></div>`;}
+    rows.map(t=>`<tr><th>${esc(ORG_TSHORT[t.key]||t.label)}</th>${cols.map(d=>{const ps=P.filter(p=>row(p)===t.key&&grp(p)===d);return`<td class="${ps.some(on)?"hot":""}">${ps.map(nm).join("")}</td>`;}).join("")}</tr>`).join("")}</tbody></table></div>`;}
+/* Structure (the owner, 2026-10-19): the flat tiers hide reporting lines, so a third view places each person by what their bio
+   says they lead, oversee or join (research/<slug>/org-structure.json in the vault, attached at push). Free-form canvas:
+   clusters where the bios put people, solid lines a bio or filing states, dashed lines inferred, dotted lines works-with.
+   Every person links to their bio; hover shows why they sit where they do. Drag to pan, wheel or pinch to zoom. */
+const ST_SIDE={top:"--st-top",quiet:"--st-quiet",pe:"--st-pe",cr:"--st-cr",pr:"--st-pr",ir:"--st-ir",ops:"--st-ops"};
+const stSlug=u=>String(u||"").replace(/\/+$/,"").split("/").pop();
+const stCut=(t,n)=>t.length>n?t.slice(0,n-1).trimEnd()+"…":t;
+function stShort(t){return[["Managing Director and ",""],["Managing Partner and ","MP, "],["Senior Vice President","SVP"],["Vice President","VP"],["Senior Executive Assistant","Sr. Exec. Assistant"],["Executive Assistant","Exec. Assistant"],["Administrative Assistant","Admin. Assistant"],["Managing Director","MD"],["Senior Associate","Sr. Associate"],[", Portfolio Resources",""],[", Capital Markets",""],[", Investor Relations",""]].reduce((a,[x,y])=>a.split(x).join(y),t||"");}
+function stWrap(t,n){const w=String(t).split(" "),out=[];let c="";w.forEach(x=>{if((c+" "+x).trim().length>n){out.push(c.trim());c=x;}else c+=" "+x;});if(c.trim())out.push(c.trim());return out;}
+function orgStructure(o,on){on=on||(p=>!!p.flag);const S=o.structure,ppl={};(o.people||[]).forEach(p=>ppl[stSlug(p.url)]=p);
+  const clu={};S.clusters.forEach(c=>clu[c.id]=c);const gh={};(S.ghosts||[]).forEach(g=>gh[g.id]=g);
+  const box=r=>r.startsWith("cl:")?clu[r.slice(3)]:r.startsWith("g:")?gh[r.slice(2)]:S.placed[r];
+  const mem=r=>r.startsWith("cl:")?Object.keys(S.placed).filter(k=>S.placed[k].cluster===r.slice(3)):[r];
+  const T=(x,y,t,a)=>`<text x="${x}" y="${y}" ${a}>${esc(t)}</text>`;
+  const why={};S.edges.forEach(e=>[e.a,e.b].forEach(r=>mem(r).forEach(k=>(why[k]=why[k]||[]).push(e.why))));
+  let fr="",cl="",ed="",pc="",nt="";
+  (S.frames||[]).forEach(f=>{fr+=`<rect x="${f.x}" y="${f.y}" width="${f.r-f.x}" height="${f.b-f.y}" rx="14" fill="none" stroke="var(--ghost)" stroke-dasharray="8 6"/>`+T(f.x+16,f.y+32,f.title,'font-size="26" font-weight="600" fill="var(--text2)"')+T(f.x+16,f.y+56,f.sub,'font-size="15" fill="var(--muted)"');});
+  S.clusters.forEach(c=>{cl+=`<g><title>${esc(c.note||"")}</title><rect x="${c.x}" y="${c.y}" width="${c.w}" height="${c.h}" rx="10" fill="var(${ST_SIDE[c.side]||"--st-quiet"})" stroke="var(--border)"/>`+T(c.x+18,c.y+33,c.title,'font-size="21" font-weight="600" fill="var(--text)"')+(c.sub?T(c.x+18,c.y+53,c.sub,'font-size="13" fill="var(--muted)"'):"")+(c.labels||[]).map(l=>T(l.x,l.y,l.text.toUpperCase(),'font-size="10" letter-spacing="1" fill="var(--faint)" font-family="IBM Plex Mono,Consolas,monospace"')).join("")+`</g>`;});
+  S.edges.forEach(e=>{const A=box(e.a),B=box(e.b);if(!A||!B)return;let x1,y1,x2,y2,h=false;
+    if(B.y>A.y+A.h+16){x1=A.x+A.w/2;y1=A.y+A.h;x2=B.x+B.w/2;y2=B.y;}else if(A.y>B.y+B.h+16){x1=A.x+A.w/2;y1=A.y;x2=B.x+B.w/2;y2=B.y+B.h;}
+    else{h=true;if(B.x>A.x){x1=A.x+A.w;x2=B.x;}else{x1=A.x;x2=B.x+B.w;}y1=A.y+A.h/2;y2=B.y+Math.min(B.h/2,40);}
+    const d=h?`M${x1} ${y1}C${(x1+x2)/2} ${y1} ${(x1+x2)/2} ${y2} ${x2} ${y2}`:`M${x1} ${y1}C${x1} ${(y1+y2)/2} ${x2} ${(y1+y2)/2} ${x2} ${y2}`;
+    const st=e.style==="line"?'stroke="var(--text2)" stroke-width="1.8"':e.style==="dash"?'stroke="var(--muted)" stroke-width="1.3" stroke-dasharray="8 6"':'stroke="var(--accent)" stroke-width="1.6" stroke-dasharray="2 5" stroke-linecap="round"';
+    const k=[e.a,e.b].flatMap(mem).concat([e.a,e.b]).join(" ");
+    ed+=`<g class="st-e" data-k="${esc(k)}"><title>${esc(e.why)}</title><path d="${d}" fill="none" ${st}${e.style==="dot"?"":` marker-end="url(#orgst-a${e.style})"`}/></g>`;});
+  Object.entries(S.placed).forEach(([k,b])=>{const p=ppl[k];if(!p)return;const big=b.kind==="head",f=on(p);
+    const tip=[p.name,p.title,p.office,p.flag&&p.flag.line].filter(Boolean).join(" · ")+((why[k]||[]).length?"\n\n"+why[k].join("\n"):"")+"\n\nClick for the bio";
+    const tl=big?stWrap(p.title,30).slice(0,2):[stCut(stShort(p.title),27)];
+    pc+=`<a class="st-p" data-k="${esc(k)}" href="${esc(p.url||"")}" target="_blank" rel="noopener"><title>${esc(tip)}</title><rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="6" fill="${f?"var(--accent-soft)":"var(--surface)"}" stroke="${f?"var(--accent)":"var(--border)"}" stroke-width="${big?1.4:1}"/>`
+      +T(b.x+10,b.y+(big?23:18),stCut(p.name,big?23:22),`font-size="${big?14.5:12.5}" font-weight="600" fill="var(--text)"`)
+      +tl.map((t,i)=>T(b.x+10,b.y+(big?(tl.length>1?39:44)+i*14:33),t,`font-size="${big?11.5:10.5}" fill="var(--muted)"`)).join("")+`</a>`;});
+  (S.ghosts||[]).forEach(g=>{pc+=`<g><title>${esc(g.why||"")}</title><rect x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}" rx="6" fill="var(--surface)" stroke="var(--amber)" stroke-width="1.6" stroke-dasharray="6 4"/>`+T(g.x+10,g.y+24,stCut(g.name,30),'font-size="14" font-weight="600" fill="var(--amber-text)"')+T(g.x+10,g.y+44,stCut(g.title,40),'font-size="11" fill="var(--muted)"')+`</g>`;});
+  (S.notes||[]).forEach(n=>{nt+=stWrap(n.text,Math.floor(n.w/8.6)).map((l,i)=>T(n.x,n.y+20+i*21,l,'font-size="17" font-style="italic" fill="var(--red-text)"')).join("");});
+  const bx=[];(S.frames||[]).forEach(f=>bx.push([f.x,f.y,f.r,f.b]));S.clusters.forEach(c=>bx.push([c.x,c.y,c.x+c.w,c.y+c.h]));(S.ghosts||[]).forEach(g=>bx.push([g.x,g.y,g.x+g.w,g.y+g.h]));(S.notes||[]).forEach(n=>bx.push([n.x,n.y,n.x+n.w,n.y+80]));
+  const vb=[Math.min(...bx.map(b=>b[0]))-20,Math.min(...bx.map(b=>b[1]))-20];vb.push(Math.max(...bx.map(b=>b[2]))+20-vb[0],Math.max(...bx.map(b=>b[3]))+20-vb[1]);
+  const ex=clu.exco||S.clusters[0],narrow=matchMedia("(max-width:640px)").matches,vbn=[ex.x-30,ex.y-30,ex.w+60,(ex.w+60)*4/3].join(" ");
+  const mk=(id,c)=>`<marker id="orgst-a${id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(${c})"/></marker>`;
+  return`<div class="hint">${esc(S.legend||"")}. Hover anyone for why they sit there; click to open their bio. Drag to pan, scroll or pinch to zoom.</div>
+    <div class="org-st-key"><span><i></i>A bio or filing says so</span><span><i class="dash"></i>Inferred</span><span><i class="dot"></i>Works with, not a reporting line</span><span><b></b>Known to the search</span></div>
+    <div class="org-st" data-vb="${vb.join(" ")}" data-vbn="${vbn}"><div class="org-st-bar"><button type="button" onclick="stFit(this.closest('.org-st'),true)">Fit</button><button type="button" onclick="stFull(this)">Full screen</button></div>
+    <div class="org-st-c" style="aspect-ratio:${narrow?"3/4":vb[2]+"/"+vb[3]}"><svg viewBox="${narrow?vbn:vb.join(" ")}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Reporting structure read from the team bios"><defs>${mk("line","--text2")}${mk("dash","--muted")}</defs>${fr}${cl}${ed}${pc}${nt}</svg></div></div>`;}
+function stFit(el,all){const svg=el.querySelector("svg");if(!svg)return;const n=!all&&!el.classList.contains("full")&&matchMedia("(max-width:640px)").matches;svg.setAttribute("viewBox",n?el.dataset.vbn:el.dataset.vb);}
+/* Phones open on the Executive Committee (readable); Fit shows the whole firm. */
+function stFull(btn){const el=btn.closest(".org-st"),on=!el.classList.contains("full");el.classList.toggle("full",on);btn.textContent=on?"Close":"Full screen";stFit(el);}
+document.addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelectorAll(".org-st.full .org-st-bar button:last-child").forEach(b=>stFull(b));});
+(function(){const ptr=new Map();let drag=null,moved=false,pinch=null;
+  const vbOf=svg=>svg.getAttribute("viewBox").split(" ").map(Number);
+  function zoom(svg,f,cx,cy){const r=svg.getBoundingClientRect(),v=vbOf(svg),s=Math.max(v[2]/r.width,v[3]/r.height);
+    const px=v[0]+(cx-r.left-(r.width-v[2]/s)/2)*s,py=v[1]+(cy-r.top-(r.height-v[3]/s)/2)*s;
+    const w=Math.min(Math.max(v[2]/f,250),20000),h=v[3]*w/v[2];svg.setAttribute("viewBox",[px-(px-v[0])*w/v[2],py-(py-v[1])*h/v[3],w,h].join(" "));}
+  document.addEventListener("wheel",e=>{const c=e.target.closest&&e.target.closest(".org-st-c");if(!c)return;e.preventDefault();zoom(c.querySelector("svg"),Math.exp(-e.deltaY*(e.ctrlKey?.01:.0018)),e.clientX,e.clientY);},{passive:false});
+  document.addEventListener("pointerdown",e=>{const c=e.target.closest&&e.target.closest(".org-st-c");if(!c)return;ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});drag=c;moved=false;
+    if(ptr.size===2){const[a,b]=[...ptr.values()];pinch={d:Math.hypot(a.x-b.x,a.y-b.y)};}});
+  document.addEventListener("pointermove",e=>{if(!drag||!ptr.has(e.pointerId))return;const pv=ptr.get(e.pointerId);ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});const svg=drag.querySelector("svg");
+    if(ptr.size===1){const dx=e.clientX-pv.x,dy=e.clientY-pv.y;if(Math.abs(dx)+Math.abs(dy)>2&&!moved){moved=true;drag.classList.add("drag");}if(!moved)return;
+      const r=svg.getBoundingClientRect(),v=vbOf(svg),s=Math.max(v[2]/r.width,v[3]/r.height);svg.setAttribute("viewBox",[v[0]-dx*s,v[1]-dy*s,v[2],v[3]].join(" "));}
+    else if(ptr.size===2&&pinch){moved=true;const[a,b]=[...ptr.values()],d=Math.hypot(a.x-b.x,a.y-b.y);zoom(svg,d/pinch.d,(a.x+b.x)/2,(a.y+b.y)/2);pinch.d=d;}});
+  const up=e=>{ptr.delete(e.pointerId);if(ptr.size<2)pinch=null;if(!ptr.size&&drag){drag.classList.remove("drag");drag=null;}};
+  document.addEventListener("pointerup",up);document.addEventListener("pointercancel",up);
+  document.addEventListener("click",e=>{if(moved&&e.target.closest&&e.target.closest(".org-st-c")){e.preventDefault();e.stopPropagation();moved=false;}},true);
+  document.addEventListener("mouseover",e=>{const st=e.target.closest&&e.target.closest(".org-st");if(!st)return;const p=e.target.closest(".st-p");
+    st.querySelectorAll(".st-e.lit").forEach(n=>n.classList.remove("lit"));
+    if(!p){st.classList.remove("hov");return;}const k=p.dataset.k;let any=false;
+    st.querySelectorAll(".st-e").forEach(n=>{if(n.dataset.k.split(" ").includes(k)){n.classList.add("lit");any=true;}});st.classList.toggle("hov",any);});
+})();
 function paneNav(j,opts){const ids=opts.order||[];const i=ids.indexOf(j.id);const p=ids[i-1],n=ids[i+1];
   return`<span class="hint">${i>=0?`<span class="mono">${i+1}</span> of <span class="mono">${ids.length}</span>`:"decided"}${p?` · <a href="#${opts.route}/${p}">previous</a>`:""}${n?` · <a href="#${opts.route}/${n}">next</a>`:""}</span>`;}
 /* The split: list column plus pane, one list ranked by score (borderline rows keep their amber tint). */
