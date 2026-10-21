@@ -7,7 +7,7 @@ files the board's mirrors are pushed from:
     <vault>/network/contacts.json       {"asof", "people": [...]}      (network_notion.py owns the person shape)
     <vault>/network/opportunities.json  {"asof", "opps": [{"id", "page", "url", "stage", "outcome", "next",
                                          "next_date", "hp", "hp_people", "flag", "lane", "ball", "company", "company_name",
-                                         "people": [ids], "meetings": [ids], "tasks": [ids], "edited"}]}
+                                         "people": [ids], "meetings": [ids], "tasks": [ids], "edited", "lane_since"}]}
     <vault>/network/meetings.json       {"asof", "meetings": [{"id", "url", "name", "date", "type", "summary",
                                          "actions", "status", "people": [ids], "companies": [ids], "opps": [ids]}]}
     <vault>/network/tasks.json         {"asof", "tasks": [{"id", "url", "title", "status", "area", "priority", "due",
@@ -109,6 +109,12 @@ def pull(cfg, p):
         if n.get("tasks_data_source") else []
     tasks.sort(key=lambda t: (t["plan_day"] or t["due"] or "9999", t["title"] or ""))
     asof = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    # lane_since: the first pull that saw the role in its current Lane (Notion keeps no history of a select). The board's
+    # Bench review asks after 21 days on the Bench (2026-10-21); a role first seen today starts its clock today.
+    prev = {o["id"]: o for o in (load(opps_file(p), "opps") or {}).get("opps") or []}
+    for o in opps:
+        was = prev.get(o["id"]) or {}
+        o["lane_since"] = was.get("lane_since") if was.get("lane") == o["lane"] and was.get("lane_since") else asof[:10]
     write(opps_file(p), {"asof": asof, "opps": opps})
     write(meetings_file(p), {"asof": asof, "meetings": meets})
     write(tasks_file(p), {"asof": asof, "tasks": tasks})

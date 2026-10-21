@@ -452,6 +452,7 @@ a.pill.lnk{display:inline-block;border-radius:999px;padding:2px 10px;border:1px 
 .td-box{width:16px;height:16px;border:1.5px solid var(--ghost);border-radius:4px;flex:none;margin-top:3px;background:var(--surface);padding:0;cursor:pointer}
 .td-box:hover{border-color:var(--accent);background:var(--accent-soft)}
 .td-tx{flex:1;min-width:0}.td-tx b{font-weight:500;display:block;line-height:1.35}.td-tx i{font-style:normal;font-size:var(--fs-sm);color:var(--muted);display:block}
+.td-dec{margin-top:6px}
 .td-why{font-style:normal;font-size:var(--fs-sm);font-weight:500;color:var(--accent);display:block}
 .td-k{font-size:11px;font-weight:500;border-radius:4px;padding:1px 6px;white-space:nowrap;margin-top:3px}
 .td-k.role{background:var(--accent-soft);color:var(--accent2)}.td-k.person{background:var(--green-soft);color:var(--green-text)}.td-k.task{background:var(--chip);color:var(--text2)}
@@ -665,7 +666,7 @@ function isDirty(id){const d=draft[id];if(!d)return false;const s=fb(id);return 
 function seedState(){state={};JOBS.forEach(j=>{const o=OPPS[j.id];state[j.id]={v:j.verdict?cap(j.verdict):"",cal:j.calibration||"",note:j.note||"",flag:!!j.flag,
   stage:(o?o.stage:j.stage)||"",outcome:(o?o.outcome:j.outcome)||"",next:(o?o.next:j.next_step)||"",nextDate:(o?o.next_date:j.next_step_date)||"",vts:j.verdict_ts||"",sts:j.stage_ts||""};});}
 /* One Opportunities page as the board holds it: the mirror row is the truth for stage, outcome and next step. */
-function applyOpp(o){if(!o||!o.id)return;OPPS[o.id]=o;const s=fb(o.id);Object.assign(s,{stage:o.stage||"",outcome:o.outcome||"",next:o.next||"",nextDate:o.next_date||""});}
+function applyOpp(o){if(!o||!o.id)return;const was=OPPS[o.id];if(!o.lane_since&&was&&was.lane_since&&was.lane===o.lane)o=Object.assign({},o,{lane_since:was.lane_since});OPPS[o.id]=o;const s=fb(o.id);Object.assign(s,{stage:o.stage||"",outcome:o.outcome||"",next:o.next||"",nextDate:o.next_date||""});}
 function applyVerdictRow(x){const s=fb(x.id);if(tsNum(x.ts)>tsNum(s.vts))Object.assign(s,{v:x.v||"",cal:x.cal||"",note:x.note||"",flag:!!x.flag,vts:x.ts});}
 let VIEWS={};
 async function loadBoard(){
@@ -1268,7 +1269,7 @@ const todoDueCount=()=>todoItems().filter(i=>!i.done&&(i.b==="overdue"||i.b==="t
 const tdWhen=i=>i.nostep?"":!i.date?"no date":i.b==="today"?"Today":i.b==="overdue"?`${-daysFrom(i.date)}d late`:daysFrom(i.date)===1?"Tomorrow":i.b==="week"?new Date(i.date+"T12:00:00").toLocaleDateString([],{weekday:"short"}):new Date(i.date+"T12:00:00").toLocaleDateString([],{month:"short",day:"numeric"});
 const tdDateBtns=(k,small)=>`<button data-tsnooze="${k}" data-days="0">Today</button><button data-tsnooze="${k}" data-days="1">Tomorrow</button><button data-tsnooze="${k}" data-days="7">Next week</button><button data-tsnooze="${k}" data-days="later" title="No date">Later</button>`;
 const tdUndo=i=>i.p?`<button class="td-undo" data-tundo="${esc(i.key)}" title="Take back the staged change">Undo</button>`:"";
-const tdRow=(i,on,opts)=>{const k=esc(i.key);return`<div class="td-row${on?" on":""}${i.done?" done":""}${i.p?" pend":""}" data-tsel="${k}"><button class="td-box" data-tdone="${k}" aria-label="Done" title="Done"${i.nostep?" disabled":""}></button><div class="td-tx"><b>${esc(i.text)}</b><i>${esc(i.who)}${i.sub?" · "+esc(i.sub):""}</i>${opts&&opts.why?`<em class="td-why">${esc(opts.why)}</em>`:""}${opts&&opts.btns?`<div class="td-btns">${tdDateBtns(k)}</div>`:""}</div>${tdUndo(i)}<span class="td-k ${i.kind}">${cap(i.kind)}</span><span class="td-dt k-${i.b}">${tdWhen(i)}</span></div>`;};
+const tdRow=(i,on,opts)=>{const k=esc(i.key);return`<div class="td-row${on?" on":""}${i.done?" done":""}${i.p?" pend":""}" data-tsel="${k}"><button class="td-box" data-tdone="${k}" aria-label="Done" title="Done"${i.nostep?" disabled":""}></button><div class="td-tx"><b>${esc(i.text)}</b><i>${esc(i.who)}${i.sub?" · "+esc(i.sub):""}</i>${opts&&opts.why?`<em class="td-why">${esc(opts.why)}</em>`:""}${opts&&opts.extra?`<div class="td-btns td-dec">${opts.extra}</div>`:""}${opts&&opts.btns?`<div class="td-btns">${tdDateBtns(k)}</div>`:""}</div>${tdUndo(i)}<span class="td-k ${i.kind}">${cap(i.kind)}</span><span class="td-dt k-${i.b}">${tdWhen(i)}</span></div>`;};
 const tdFold=new Set();
 function tdGroups(items){const g=[];const push=(key,name,list)=>{if(list.length)g.push({key,name,list});};
   push("od","Overdue",items.filter(i=>i.b==="overdue"));push("td","Today · "+fmtDate(todayIso()),items.filter(i=>i.b==="today"));
@@ -1367,14 +1368,15 @@ const bizDays=n=>{const d=new Date();let k=0;while(k<n){d.setDate(d.getDate()+1)
 const laneOf=id=>(OPPS[id]||{}).lane||"";
 const early=j=>stageRank(stageOf(j))<stageRank("applied");
 const activeEarly=()=>JOBS.filter(j=>verdictOf(j)==="pursue"&&!isClosed(j)&&laneOf(j.id)==="active"&&early(j)).length;
-const MOVES={sent:"Sent",applied:"Applied",promote:"Promote to Active",bench:"Back to Bench",pause:"Pause",close:"Close"};
+const MOVES={sent:"Sent",applied:"Applied",promote:"Promote to Active",bench:"Back to Bench",pause:"Pause",close:"Close",noresp:"Close: no response"};
 function moveFields(mv,id){const st=stageOf(byId[id]);
   if(mv==="sent")return{stage:stageRank(st)<stageRank("outreach")?"outreach":st,ball:"them",next:"Follow up if no reply",next_date:bizDays(5)};
   if(mv==="applied")return{stage:stageRank(st)<stageRank("applied")?"applied":st,lane:"active",ball:"them",next:"Follow up on the application",next_date:bizDays(10)};
   if(mv==="close")return{stage:"closed",outcome:"withdrew"};
+  if(mv==="noresp")return{stage:"closed",outcome:"no_response"};
   return{lane:{promote:"active",bench:"bench",pause:"paused"}[mv]};}
 function moveBtns(i){if(i.kind!=="role"||i.done)return"";const k=esc(i.key),j=i.j,b=(mv,lab)=>`<button data-tmove="${k}" data-mv="${mv}">${lab||MOVES[mv]}</button>`;
-  return`<div class="nw-sec"><div class="nw-lab">Quick moves</div><div class="td-btns">${b("sent","Sent a note")}${early(j)?b("applied"):""}${i.lane!=="active"?b("promote"):early(j)?b("bench"):""}${i.lane!=="paused"?b("pause"):""}${b("close")}</div><div class="td-home">Sent: Outreach, ball with them, follow up in 5 business days. Applied: follow up in 10. Close is withdrew. Sync sends it.</div></div>`;}
+  return`<div class="nw-sec"><div class="nw-lab">Quick moves</div><div class="td-btns">${b("sent","Sent a note")}${early(j)?b("applied"):""}${i.lane!=="active"?b("promote"):early(j)?b("bench"):""}${i.lane!=="paused"?b("pause"):""}${b("close")}${["outreach","applied"].includes(stageOf(j))?b("noresp","No response"):""}</div><div class="td-home">Sent: Outreach, ball with them, follow up in 5 business days. Applied: follow up in 10. Close is withdrew. Sync sends it.</div></div>`;}
 function todayMove(key,mv){const [,id]=tdSplit(key);const j=byId[id];if(!j||!MOVES[mv])return;
   if(mv==="promote"&&early(j)&&activeEarly()>=ACTIVE_CAP){toast(`Active already has ${ACTIVE_CAP}. Bench or pause one first.`);return;}
   stage(key,{mv,text:(todoItems().find(i=>i.key===key)||{}).text||""});toast("Staged: "+MOVES[mv]);render();}
@@ -1397,6 +1399,41 @@ function planAnswer(id,ok){const j=byId[id];if(!j||!j.plan)return;const ta=view.
    the rest stay on To-dos. */
 const TOP_N=3;
 const inPlay=i=>i.j&&verdictOf(i.j)==="pursue"&&!isClosed(i.j)&&(laneOf(i.j.id)==="active"||!early(i.j));
+/* Decisions (agreed spec, flow 5, 8 and 9; built 2026-10-21 on the owner's go). Each is a question about one role, never
+   acted on by itself: the buttons stage a move and Sync sends it.
+   - No response: a role in Outreach or Applied whose last send or application is 21+ days old with nothing back since
+     (log.md, written by the mail step); Close: no response, or keep waiting a week.
+   - Stale: an Active role, ball not with them, whose next move is 7+ days late, or with no next step 7+ days into its
+     stage; keep (a new date), change approach (the role), pause or close.
+   - Bench review: on the Bench 21+ days (lane_since, kept by notion_sync.py from the day the Lane last changed); promote,
+     keep (a review in 21 days, written as the role's next step so it holds on every device), or close.
+   - Open slot: Active under the cap of 8; the best Bench role by fit is offered, never promoted silently. Not now hides
+     it for a week on this device. */
+const DEC_NORESP=21,DEC_STALE=7,DEC_BENCH=21;
+const slotQuiet=()=>{try{return(localStorage.getItem("board.slotQuiet")||"")>=todayIso();}catch(x){return false;}};
+function todayDecisions(items){const role=id=>items.find(i=>i.kind==="role"&&i.id===id);const out=[];const seen=new Set();const today=todayIso();
+  const due=i=>!i.date||i.date<=today;const pend=i=>i.p&&(i.p.mv||i.p.next!==undefined||i.p.date!==undefined);
+  const add=(i,dec,text,why,btns)=>{if(!i||seen.has(i.id)||i.done||pend(i))return;seen.add(i.id);out.push(Object.assign({},i,{dec,text,decWhy:why,decBtns:btns}));};
+  const mv=(i,m,lab)=>`<button data-tmove="${esc(i.key)}" data-mv="${m}">${esc(lab||MOVES[m])}</button>`;
+  const keep=(i,next,days,lab)=>`<button data-tkeep="${esc(i.key)}" data-next="${esc(next)}" data-days="${days}">${esc(lab)}</button>`;
+  items.filter(i=>i.kind==="role").forEach(i=>{const j=i.j;
+    if(["outreach","applied"].includes(stageOf(j))&&i.lane!=="paused"&&due(i)){const log=j.log||[];
+      const out_=log.filter(r=>/^(sent|applied)$/i.test(r.type)).map(r=>r.date).sort().pop();
+      if(out_&&daysAgo(out_)>=DEC_NORESP&&!log.some(r=>/^(email|invite)$/i.test(r.type)&&r.date>=out_))
+        add(i,"noresp",`No reply from ${j.company.split(" via ")[0]}: close it, or keep waiting?`,`No reply in ${daysAgo(out_)} days`,mv(i,"noresp")+keep(i,"Check for a reply",7,"Keep waiting"));}});
+  items.filter(i=>i.kind==="role"&&i.lane==="active"&&early(i.j)&&i.ball!=="them").forEach(i=>{
+    const late=!i.nostep&&i.date&&daysAgo(i.date)>=DEC_STALE,idle=i.nostep&&ageOf(i.j).stageDays>=DEC_STALE;
+    if(late||idle)add(i,"stale",`Stalled: keep going, change the approach, pause or close?`,late?`Next move ${daysAgo(i.date)} days late`:`No next step in ${ageOf(i.j).stageDays} days`,
+      `<button data-tsel="${esc(i.key)}">Keep or change</button>`+mv(i,"pause")+mv(i,"close"));});
+  const room=ACTIVE_CAP-activeEarly()-Object.values(PEND).filter(p=>p.mv==="promote").length;
+  const bench=items.filter(i=>i.kind==="role"&&i.lane==="bench").sort((a,b)=>(b.j.score||0)-(a.j.score||0));
+  bench.forEach(i=>{const since=(OPPS[i.id]||{}).lane_since;
+    if(since&&daysAgo(since)>=DEC_BENCH&&due(i))add(i,"bench",`On the Bench a while: promote, keep or close?`,`Bench ${daysAgo(since)} days`+(room>0?" · Active has room":""),
+      (room>0?mv(i,"promote","Promote"):"")+keep(i,"Bench review",DEC_BENCH,"Keep on Bench")+mv(i,"close"));});
+  if(room>0&&!slotQuiet()){const best=bench.find(i=>!seen.has(i.id)&&!pend(i));
+    if(best)add(best,"slot",`Active has ${room} open slot${room===1?"":"s"}: promote ${best.j.company.split(" via ")[0]}?`,`Best on the Bench · fit ${best.j.score??"?"}`,
+      mv(best,"promote","Promote")+`<button data-tslotquiet="1">Not now</button>`);}
+  return out;}
 function todayParts(){const k3=plusDays(3);
   const all=todoItems();const stepped=new Set(all.filter(i=>i.kind==="role"&&!i.nostep).map(i=>i.id));
   const items=all.filter(i=>i.kind==="person"||(i.kind==="role"&&(inPlay(i)||["bench","paused"].includes(i.lane)))||(i.kind==="task"&&inPlay(i)&&!stepped.has(i.j.id)));
@@ -1405,22 +1442,26 @@ function todayParts(){const k3=plusDays(3);
   const rest=items.filter(i=>!ivk.has(i.key));
   const mine=rest.filter(i=>live(i)&&i.ball!=="them");
   const plans=JOBS.filter(planOpen).sort((a,b)=>(b.score||0)-(a.score||0));const planned=new Set(plans.map(j=>j.id));
-  const due=mine.filter(i=>!i.nostep&&!planned.has(i.j.id)&&(i.b==="overdue"||i.b==="today")).sort((a,b)=>((b.j.score||0)-(a.j.score||0))||(a.date||"").localeCompare(b.date||""));
+  const decs=todayDecisions(all).filter(d=>!planned.has(d.id)&&!ivk.has(d.key));const decided=new Set(decs.map(d=>d.id));
+  const due=mine.filter(i=>!i.nostep&&!planned.has(i.j.id)&&!decided.has(i.j.id)&&(i.b==="overdue"||i.b==="today")).sort((a,b)=>((b.j.score||0)-(a.j.score||0))||(a.date||"").localeCompare(b.date||""));
   const reply=mine.filter(i=>/^Reply to /.test(i.text)&&!due.includes(i));
   const ranked=[...iv.map(i=>({i,why:"Interview "+tdWhen(i).replace(/^(Today|Tomorrow)$/,m=>m.toLowerCase())})),...plans.map(j=>({j,why:"Plan waiting on your answer"})),
-    ...due.map(i=>({i,why:(i.b==="overdue"?tdWhen(i):"Due today")+" · fit "+(i.j.score??"?")})),...reply.map(i=>({i,why:"They wrote back"}))];
+    ...[...due.map(i=>({i,why:(i.b==="overdue"?tdWhen(i):"Due today")+" · fit "+(i.j.score??"?")})),...decs.filter(d=>d.dec==="stale").map(i=>({i,why:i.decWhy+" · fit "+(i.j.score??"?")}))]
+      .sort((a,b)=>(b.i.j.score||0)-(a.i.j.score||0)),...reply.map(i=>({i,why:"They wrote back"})),
+    ...decs.filter(d=>d.dec!=="stale").map(i=>({i,why:i.decWhy}))];
   const top=ranked.filter(r=>!(r.i&&r.i.done)).slice(0,TOP_N);const topk=new Set(top.map(r=>r.i?r.i.key:"plan:"+r.j.id));
   const left=l=>l.filter(i=>!topk.has(i.key));
-  return{items,top,iv:left(iv),plans:plans.filter(j=>!topk.has("plan:"+j.id)),
-    now:left(mine.filter(i=>(i.b==="overdue"||i.b==="today")&&!(i.kind==="role"&&planned.has(i.id)))),nostep:left(mine.filter(i=>i.b==="nostep")),soon:left(mine.filter(i=>!["overdue","today","nostep"].includes(i.b))),
-    people:rest.filter(i=>i.kind==="person"),theirs:rest.filter(i=>live(i)&&i.ball==="them"),
-    bench:rest.filter(i=>i.kind==="role"&&i.lane==="bench"),paused:rest.filter(i=>i.kind==="role"&&i.lane==="paused")};}
+  const notDec=l=>l.filter(i=>!decided.has(i.id)||i.kind!=="role");
+  return{items,top,decs:left(decs),iv:left(iv),plans:plans.filter(j=>!topk.has("plan:"+j.id)),
+    now:notDec(left(mine.filter(i=>(i.b==="overdue"||i.b==="today")&&!(i.kind==="role"&&planned.has(i.id))))),nostep:notDec(left(mine.filter(i=>i.b==="nostep"))),soon:left(mine.filter(i=>!["overdue","today","nostep"].includes(i.b))),
+    people:rest.filter(i=>i.kind==="person"),theirs:notDec(rest.filter(i=>live(i)&&i.ball==="them")),
+    bench:notDec(rest.filter(i=>i.kind==="role"&&i.lane==="bench")),paused:rest.filter(i=>i.kind==="role"&&i.lane==="paused")};}
 const todayCount=()=>todayParts().top.length;
 function viewToday(arg){const t=todayParts();
   const all=[...t.top.filter(r=>r.i).map(r=>r.i),...t.iv,...t.now,...t.nostep,...t.soon,...t.people,...t.theirs,...t.bench,...t.paused];
   const sel=all.find(i=>i.key===arg)||(SPLIT.matches?(t.top.find(r=>r.i)||{}).i||null:null);
   const on=i=>!!(sel&&i.key===sel.key);
-  const row=(i,why)=>tdRow(i,on(i),why?{why}:null)+(!SPLIT.matches&&on(i)?`<div class="td-drawer">${tdPane(i)}</div>`:"");
+  const row=(i,why)=>tdRow(i,on(i),why||i.dec?{why:why||i.decWhy,extra:i.decBtns}:null)+(!SPLIT.matches&&on(i)?`<div class="td-drawer">${tdPane(i)}</div>`:"");
   const rows=list=>list.map(i=>row(i)).join("");
   const sec=(key,name,list,folded,hint)=>{if(!list.length)return"";const f=tdFold.has(key)!==!!folded;
     return`<div class="td-grp"><button class="td-gh${f?" fold":""}" data-tfold="${key}">${esc(name)}<span>${list.length}</span></button>${f?"":`${hint?`<div class="hint">${hint}</div>`:""}<div class="td-card">${rows(list)}</div>`}</div>`;};
@@ -1428,14 +1469,14 @@ function viewToday(arg){const t=todayParts();
   const runs=[];t.top.forEach(r=>{const last=runs[runs.length-1];if(r.i&&last&&last.rows)last.rows.push(r);else runs.push(r.i?{rows:[r]}:{plan:r.j});});
   const first=t.top.length?`<div class="td-grp td-top"><div class="td-gh">Do these first<span>${t.top.length}</span></div>${runs.map(x=>x.rows?`<div class="td-card">${x.rows.map(r=>row(r.i,r.why)).join("")}</div>`:planCard(x.plan)).join("")}</div>`:"";
   const restPlans=t.plans.length?`<div class="td-grp"><div class="td-gh">Plans to answer<span>${t.plans.length}</span></div><div class="hint">Nothing is drafted until you answer. Approve as is, or say what to change; Sync sends it.</div>${t.plans.map(planCard).join("")}</div>`:"";
-  const inner=sec("iv","Interviews, next 3 days",t.iv)+restPlans+sec("now","Also due · "+fmtDate(todayIso()),t.now)+sec("ns","Active, no next step yet",t.nostep)
+  const inner=sec("dec","Decisions",t.decs)+sec("iv","Interviews, next 3 days",t.iv)+restPlans+sec("now","Also due · "+fmtDate(todayIso()),t.now)+sec("ns","Active, no next step yet",t.nostep)
     +sec("soon","Coming up",t.soon)+sec("ppl","Relationships",t.people)+sec("them","Waiting on them",t.theirs)
     +sec("bench","Bench",t.bench,true,"Quick research runs on these too. Promote one when Active has room.")+sec("paused","Paused",t.paused,true);
-  const n=t.iv.length+t.plans.length+t.now.length+t.nostep.length+t.soon.length+t.people.length+t.theirs.length+t.bench.length+t.paused.length;
+  const n=t.decs.length+t.iv.length+t.plans.length+t.now.length+t.nostep.length+t.soon.length+t.people.length+t.theirs.length+t.bench.length+t.paused.length;
   const shut=!tdFold.has("rest");
   const more=n?`<div class="td-grp"><button class="td-gh${shut?" fold":""}" data-tfold="rest">Everything else<span>${n}</span></button>${shut?"":inner}</div>`:"";
   const ae=activeEarly();
-  return`<div class="sh"><h2>Today <span>${t.top.length} to do first · Active ${ae}/${ACTIVE_CAP}</span></h2><div class="hint">Ranked: interviews, then plans, then due moves on Active roles by fit. Sync saves changes to Notion.</div></div>${tdBar()}
+  return`<div class="sh"><h2>Today <span>${t.top.length} to do first · Active ${ae}/${ACTIVE_CAP}</span></h2><div class="hint">Ranked: interviews, then plans, then due or stalled moves on Active roles by fit, then replies and decisions. Sync saves changes to Notion.</div></div>${tdBar()}
    <div class="td"><div class="td-main">${first||'<div class="emptybig"><b>Nothing needs you first</b><span>No interview, plan or Active move is due.</span></div>'}${more}</div>
    <div class="td-side">${SPLIT.matches?`<div class="td-card td-pane">${sel?tdPane(sel):'<div class="hint">Pick a row on the left.</div>'}</div>`:""}</div></div>`;}
 
@@ -1931,7 +1972,7 @@ view.addEventListener("click",async e=>{const t=e.target.closest("[data-edit],[d
   if(!await writeVerdict(id,{v:""}))return;if(OPPS[id])await closeOpp(id);EDIT.delete(id);delete draft[id];
   toast(isInbox(byId[id])?"Back in the Inbox; your note is kept":"Verdict cleared. It scores under the inbox floor, so it will not show in the Inbox");render();});
 view.addEventListener("click",async e=>{const d=e.target.closest('a[href="#decide"]');if(d){e.preventDefault();const el=document.getElementById("decide");if(el)el.scrollIntoView({behavior:"smooth",block:"start"});return;}
-  const t=e.target.closest("[data-v],[data-quickv],[data-cal],[data-flag],[data-x],[data-open],[data-acc],[data-submit],[data-sel],[data-mapf],[data-pin],[data-mapzoom],[data-netlens],[data-addperson],[data-cdone],[data-snooze],[data-cdonego],[data-nsel],[data-link],[data-unlink],[data-tsel],[data-tdone],[data-tsnooze],[data-tfold],[data-tundo],[data-tsync],[data-tdiscard],[data-tmove],[data-plan],[data-wtab],[data-samples],[data-scrf],[data-confirmrm]");if(!t)return;
+  const t=e.target.closest("[data-v],[data-quickv],[data-cal],[data-flag],[data-x],[data-open],[data-acc],[data-submit],[data-sel],[data-mapf],[data-pin],[data-mapzoom],[data-netlens],[data-addperson],[data-cdone],[data-snooze],[data-cdonego],[data-nsel],[data-link],[data-unlink],[data-tsel],[data-tdone],[data-tsnooze],[data-tfold],[data-tundo],[data-tsync],[data-tdiscard],[data-tmove],[data-tkeep],[data-tslotquiet],[data-plan],[data-wtab],[data-samples],[data-scrf],[data-confirmrm]");if(!t)return;
   if(t.matches("[data-confirmrm]")){e.preventDefault();e.stopPropagation();t.disabled=true;await confirmRemoval(t.dataset.confirmrm);return;}
   if(t.dataset.samples){setSamples(!SAMPLES_ON);paint();return;}
   if(t.dataset.scrf){SCR_F=t.dataset.scrf;paint();return;}
@@ -1944,6 +1985,8 @@ view.addEventListener("click",async e=>{const d=e.target.closest('a[href="#decid
   if(t.dataset.tdiscard){const n=pendN();PEND={};savePend();toast(`${n} staged change${n===1?"":"s"} discarded`);render();return;}
   if(t.dataset.tsel){const h=tdBase()+"/"+t.dataset.tsel;if(location.hash!==h)location.hash=h;else if(!SPLIT.matches)location.hash=tdBase();return;}
   if(t.dataset.tmove){todayMove(t.dataset.tmove,t.dataset.mv);return;}
+  if(t.dataset.tkeep){const d=plusDays(+t.dataset.days);stage(t.dataset.tkeep,{next:t.dataset.next,date:d,text:t.dataset.next});toast(`Staged: ${t.dataset.next}, ${fmtDate(d)}`);render();return;}
+  if(t.dataset.tslotquiet){try{localStorage.setItem("board.slotQuiet",plusDays(7));}catch(x){}toast("Hidden for a week");render();return;}
   if(t.dataset.plan){planAnswer(t.dataset.plan,t.dataset.ok==="1");return;}
   if(t.dataset.link||t.dataset.unlink){const id=t.dataset.link||t.dataset.unlink;t.disabled=true;
     const o=await oppWrite({action:t.dataset.link?"link":"unlink",id,kind:t.dataset.kind,target:t.dataset.target});
