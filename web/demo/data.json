@@ -971,7 +971,7 @@
 "verdict": "cold",
 "qualifier": null,
 "people": "No path yet; three people at the company share a previous employer.",
-"checked": "2026-10-04",
+"checked": "2026-10-06",
 "ref": null,
 "attached": null
 },
@@ -993,9 +993,31 @@
 "doc": "<p><strong>Company:</strong> Meridian Software\n<strong>Job posting:</strong> <a href=\"https://meridian.example.com/careers/principal-pm-ai-platform\" target=\"_blank\" rel=\"noopener\">https://meridian.example.com/careers/principal-pm-ai-platform</a>\n<strong>Status:</strong> Researching\n<strong>Verdict:</strong> Pursue (the owner, 2026-09-30)\n<strong>Human path:</strong> cold. No path yet; three people at the company share a previous employer.</p>",
 "campaign": null,
 "timeline": [],
-"assets": [],
+"assets": [
+{
+"url": "#",
+"date": "2026-10-05",
+"kind": "doc",
+"path": "research/brief.md",
+"group": "Research",
+"label": "Meridian Software: diligence brief"
+}
+],
 "meetings_vault": [],
-"log": []
+"log": [],
+"plan": {
+"version": 1,
+"date": "2026-10-07",
+"route": "warm intro (Jordan Lee), then apply the same week",
+"why": "A first-degree contact sits two levels from the hiring manager; the posting is two weeks old, so the application should follow the note within days.",
+"people": "Jordan Lee (first-degree since 2019, partnerships lead)",
+"materials": "a short note to Jordan; a tailored resume and cover note",
+"decision": "Comfortable asking Jordan, and should the note lead with the build record or the adoption record?",
+"status": "proposed",
+"input": [
+"2026-10-08: approved (plan v1). Lead with the build record; Jordan is a good friend, ask directly."
+]
+}
 },
 "updated_at": "2026-10-08T10:31:00.000Z"
 },
@@ -1058,12 +1080,9 @@
 "precision": "street"
 },
 "human_path": {
-"verdict": "warm reachable",
-"qualifier": null,
-"people": "Dr. Amara Osei (CMIO) is a first-degree connection from a board; not yet asked.",
-"checked": "2026-10-04",
-"ref": null,
-"attached": null
+"verdict": "unchecked",
+"checked": null,
+"people": ""
 },
 "posting": {
 "state": "active",
@@ -1083,7 +1102,16 @@
 "doc": "<p><strong>Company:</strong> Beacon Health Systems\n<strong>Job posting:</strong> <a href=\"https://beaconhealth.example.org/careers/senior-director-digital-transformation\" target=\"_blank\" rel=\"noopener\">https://beaconhealth.example.org/careers/senior-director-digital-transformation</a>\n<strong>Status:</strong> Researching\n<strong>Verdict:</strong> Pursue (the owner, 2026-09-28)\n<strong>Human path:</strong> warm reachable. Dr. Amara Osei (CMIO) is a first-degree connection from a board; not yet asked.</p>",
 "campaign": null,
 "timeline": [],
-"assets": [],
+"assets": [
+{
+"url": "#",
+"date": "2026-10-05",
+"kind": "doc",
+"path": "research/brief.md",
+"group": "Research",
+"label": "Beacon Health Systems: diligence brief"
+}
+],
 "meetings_vault": [],
 "log": []
 },
@@ -1147,12 +1175,9 @@
 "precision": "street"
 },
 "human_path": {
-"verdict": "cold",
-"qualifier": null,
-"people": "No path.",
-"checked": "2026-10-04",
-"ref": null,
-"attached": null
+"verdict": "unchecked",
+"checked": null,
+"people": ""
 },
 "posting": {
 "state": "active",
@@ -1236,12 +1261,9 @@
 "precision": "street"
 },
 "human_path": {
-"verdict": "cold",
-"qualifier": null,
-"people": "No path.",
-"checked": "2026-10-04",
-"ref": null,
-"attached": null
+"verdict": "unchecked",
+"checked": null,
+"people": ""
 },
 "posting": {
 "state": "active",
@@ -1325,12 +1347,9 @@
 "precision": "street"
 },
 "human_path": {
-"verdict": "cold",
-"qualifier": null,
-"people": "No path.",
-"checked": "2026-10-04",
-"ref": null,
-"attached": null
+"verdict": "unchecked",
+"checked": null,
+"people": ""
 },
 "posting": {
 "state": "active",
@@ -1350,7 +1369,16 @@
 "doc": "<p><strong>Company:</strong> Summit Legal\n<strong>Job posting:</strong> <a href=\"https://summitlegal.example.com/careers/ai-adoption-lead\" target=\"_blank\" rel=\"noopener\">https://summitlegal.example.com/careers/ai-adoption-lead</a>\n<strong>Status:</strong> Shortlist\n<strong>Verdict:</strong> Pursue (the owner, 2026-10-04)\n<strong>Human path:</strong> cold. No path.</p>",
 "campaign": null,
 "timeline": [],
-"assets": [],
+"assets": [
+{
+"url": "#",
+"date": "2026-10-05",
+"kind": "doc",
+"path": "research/brief.md",
+"group": "Research",
+"label": "Summit Legal: diligence brief"
+}
+],
 "meetings_vault": [],
 "log": []
 },
@@ -1413,12 +1441,9 @@
 "precision": "street"
 },
 "human_path": {
-"verdict": "cold",
-"qualifier": null,
-"people": "No path.",
-"checked": "2026-10-04",
-"ref": null,
-"attached": null
+"verdict": "unchecked",
+"checked": null,
+"people": ""
 },
 "posting": {
 "state": "active",
@@ -1637,7 +1662,11 @@
 "address": null,
 "precision": "remote"
 },
-"human_path": null,
+"human_path": {
+"verdict": "unchecked",
+"checked": null,
+"people": ""
+},
 "posting": {
 "state": "removed",
 "since": "2026-10-04",
@@ -1656,7 +1685,16 @@
 "doc": "",
 "campaign": null,
 "timeline": [],
-"assets": [],
+"assets": [
+{
+"url": "#",
+"date": "2026-10-05",
+"kind": "doc",
+"path": "research/brief.md",
+"group": "Research",
+"label": "Atlas Field Services: diligence brief"
+}
+],
 "meetings_vault": [],
 "log": []
 },
@@ -1713,7 +1751,11 @@
 "address": null,
 "precision": "remote"
 },
-"human_path": null,
+"human_path": {
+"verdict": "unchecked",
+"checked": null,
+"people": ""
+},
 "posting": {
 "state": "removed",
 "since": "2026-09-29",
@@ -1797,7 +1839,7 @@
 "verdict": "warm reachable",
 "qualifier": null,
 "people": "Ravi Menon (CPO) shares a previous employer; not yet asked.",
-"checked": "2026-10-08",
+"checked": "2026-10-06",
 "ref": null,
 "attached": null
 },
@@ -1819,9 +1861,47 @@
 "doc": "",
 "campaign": null,
 "timeline": [],
-"assets": [],
+"assets": [
+{
+"url": "#",
+"date": "2026-10-05",
+"kind": "doc",
+"path": "research/brief.md",
+"group": "Research",
+"label": "Tidewater Logistics: diligence brief"
+},
+{
+"url": "#",
+"date": "2026-10-08",
+"kind": "doc",
+"path": "application/cover-letter.md",
+"group": "Application",
+"label": "Cover note v1"
+},
+{
+"url": "#",
+"date": "2026-10-08",
+"kind": "doc",
+"path": "application/note-jordan.md",
+"group": "Application",
+"label": "Note to Jordan Lee (draft)"
+}
+],
 "meetings_vault": [],
-"log": []
+"log": [],
+"plan": {
+"version": 1,
+"date": "2026-10-07",
+"route": "warm intro (Jordan Lee), then apply the same week",
+"why": "A first-degree contact sits two levels from the hiring manager; the posting is two weeks old, so the application should follow the note within days.",
+"people": "Jordan Lee (first-degree since 2019, partnerships lead)",
+"materials": "a short note to Jordan; a tailored resume and cover note",
+"decision": "Comfortable asking Jordan, and should the note lead with the build record or the adoption record?",
+"status": "proposed",
+"input": [
+"2026-10-08: approved (plan v1). Lead with the build record; Jordan is a good friend, ask directly."
+]
+}
 },
 "updated_at": "2026-10-08T10:31:00.000Z"
 },
@@ -1883,7 +1963,7 @@
 "verdict": "cold",
 "qualifier": null,
 "people": "No path.",
-"checked": "2026-10-08",
+"checked": "2026-10-06",
 "ref": null,
 "attached": null
 },
@@ -1905,9 +1985,29 @@
 "doc": "",
 "campaign": null,
 "timeline": [],
-"assets": [],
+"assets": [
+{
+"url": "#",
+"date": "2026-10-05",
+"kind": "doc",
+"path": "research/brief.md",
+"group": "Research",
+"label": "Copperline Energy: diligence brief"
+}
+],
 "meetings_vault": [],
-"log": []
+"log": [],
+"plan": {
+"version": 1,
+"date": "2026-10-07",
+"route": "warm intro (Jordan Lee), then apply the same week",
+"why": "A first-degree contact sits two levels from the hiring manager; the posting is two weeks old, so the application should follow the note within days.",
+"people": "Jordan Lee (first-degree since 2019, partnerships lead)",
+"materials": "a short note to Jordan; a tailored resume and cover note",
+"decision": "Comfortable asking Jordan, and should the note lead with the build record or the adoption record?",
+"status": "proposed",
+"input": []
+}
 },
 "updated_at": "2026-10-08T10:31:00.000Z"
 },
@@ -1970,7 +2070,7 @@
 "verdict": "warm reachable",
 "qualifier": null,
 "people": "Marcus Lind, as for the lead role.",
-"checked": "2026-10-08",
+"checked": "2026-10-06",
 "ref": null,
 "attached": null
 },
@@ -1998,7 +2098,16 @@
 "doc": "",
 "campaign": null,
 "timeline": [],
-"assets": [],
+"assets": [
+{
+"url": "#",
+"date": "2026-10-05",
+"kind": "doc",
+"path": "research/brief.md",
+"group": "Research",
+"label": "Northwind Labs: diligence brief"
+}
+],
 "meetings_vault": [],
 "log": []
 },
@@ -2059,12 +2168,9 @@
 "precision": "street"
 },
 "human_path": {
-"verdict": "warm reachable",
-"qualifier": null,
-"people": "Same path as the VP role.",
-"checked": "2026-10-07",
-"ref": null,
-"attached": null
+"verdict": "unchecked",
+"checked": null,
+"people": ""
 },
 "posting": {
 "state": "active",
@@ -2090,7 +2196,16 @@
 "doc": "",
 "campaign": null,
 "timeline": [],
-"assets": [],
+"assets": [
+{
+"url": "#",
+"date": "2026-10-05",
+"kind": "doc",
+"path": "research/brief.md",
+"group": "Research",
+"label": "Halcyon Insurance: diligence brief"
+}
+],
 "meetings_vault": [],
 "log": []
 },
@@ -5847,6 +5962,72 @@
 "title": "Director, Claims Operations",
 "company": "Halcyon Insurance",
 "pkeep": null
+},
+{
+"id": "e03175343f",
+"v": "Pursue",
+"cal": null,
+"note": "",
+"flag": false,
+"ts": "2026-10-08T09:00:00.000Z",
+"title": "Lead PM, AI Dispatch",
+"company": "Atlas Field Services",
+"pkeep": null
+},
+{
+"id": "2292741148",
+"v": "Pursue",
+"cal": null,
+"note": "",
+"flag": false,
+"ts": "2026-10-08T09:00:00.000Z",
+"title": "Director, Generative AI",
+"company": "Pinecrest Media",
+"pkeep": null
+},
+{
+"id": "db706b889d",
+"v": "Pursue",
+"cal": null,
+"note": "",
+"flag": false,
+"ts": "2026-10-08T09:00:00.000Z",
+"title": "VP Product, AI Workflows",
+"company": "Tidewater Logistics",
+"pkeep": null
+},
+{
+"id": "5f4cd8fe4d",
+"v": "Pursue",
+"cal": null,
+"note": "",
+"flag": false,
+"ts": "2026-10-08T09:00:00.000Z",
+"title": "Director, AI Transformation Office",
+"company": "Copperline Energy",
+"pkeep": null
+},
+{
+"id": "0657d9f221",
+"v": "Pursue",
+"cal": null,
+"note": "",
+"flag": false,
+"ts": "2026-10-08T09:00:00.000Z",
+"title": "Group Product Manager, Agents",
+"company": "Northwind Labs",
+"pkeep": null
+},
+{
+"id": "3a989eeeb4",
+"v": "Pursue",
+"cal": null,
+"note": "",
+"flag": false,
+"ts": "2026-10-08T09:00:00.000Z",
+"title": "Senior Manager, AI Enablement",
+"company": "Halcyon Insurance",
+"pkeep": null
 }
 ],
 "contacts": [
@@ -6253,6 +6434,36 @@
 "edited": "2026-10-07T16:00:00.000Z"
 },
 "updated_at": "2026-10-07T16:00:00.000Z"
+},
+{
+"id": "c-rhea-kapoor",
+"payload": {
+"id": "c-rhea-kapoor",
+"name": "Rhea Kapoor",
+"company": "Lattice Health",
+"role": "VP Operations",
+"how": "Warm intro",
+"status": "Not contacted",
+"priority": "High",
+"hook": "Intro from Sam Delgado (email): they ran the claims automation program together at his last firm",
+"notes": "",
+"linkedin": "",
+"touches": [
+{
+"date": "2026-10-08",
+"type": "Email",
+"note": "Sam's intro email"
+}
+],
+"last_date": "2026-10-08",
+"last_type": "Email",
+"last_note": "Sam's intro email",
+"next_date": "2026-10-08",
+"next_type": "Email",
+"next_action": "Reply to the intro and book a time",
+"roles": [],
+"url": "#"
+}
 }
 ],
 "opportunities": [
@@ -6284,7 +6495,8 @@
 ],
 "hp": "warm active",
 "hp_people": "Dana Okafor (Harbor Search) runs the process and submitted the resume; Priya Natarajan (CIO) is the hiring manager and has met the owner twice. Second-degree route to the head of portfolio operations through Sam Delgado.",
-"edited": "2026-10-07T12:00:00.000Z"
+"edited": "2026-10-07T12:00:00.000Z",
+"ball": "owner"
 },
 "updated_at": "2026-10-07T12:00:00.000Z"
 },
@@ -6314,7 +6526,8 @@
 ],
 "hp": "warm reachable",
 "hp_people": "Marcus Lind (VP Engineering) is a first-degree connection from a previous employer; not yet asked. Two second-degree routes to the VP Product.",
-"edited": "2026-10-07T12:00:00.000Z"
+"edited": "2026-10-07T12:00:00.000Z",
+"ball": "them"
 },
 "updated_at": "2026-10-07T12:00:00.000Z"
 },
@@ -6339,7 +6552,8 @@
 ],
 "hp": "cold",
 "hp_people": "No first-degree connection. The COO's chief of staff posted the role on LinkedIn; a note is drafted.",
-"edited": "2026-10-07T12:00:00.000Z"
+"edited": "2026-10-07T12:00:00.000Z",
+"ball": "them"
 },
 "updated_at": "2026-10-07T12:00:00.000Z"
 },
@@ -6369,7 +6583,8 @@
 ],
 "hp": "warm reachable",
 "hp_people": "Elena Marsh (Chief Claims Officer) is a second-degree connection through Sam Delgado; Sam offered an introduction.",
-"edited": "2026-10-07T12:00:00.000Z"
+"edited": "2026-10-07T12:00:00.000Z",
+"ball": "them"
 },
 "updated_at": "2026-10-07T12:00:00.000Z"
 },
@@ -6396,7 +6611,8 @@
 ],
 "hp": "warm active",
 "hp_people": "Jordan Pike (head of the AI practice) replied to a note and proposed a call.",
-"edited": "2026-10-07T12:00:00.000Z"
+"edited": "2026-10-07T12:00:00.000Z",
+"ball": "them"
 },
 "updated_at": "2026-10-07T12:00:00.000Z"
 },
@@ -6410,8 +6626,8 @@
 "flag": false,
 "stage": "researching",
 "outcome": null,
-"next": "Read the platform group's engineering blog; find who runs the group",
-"next_date": "2026-10-05",
+"next": "Claude drafts the note to Jordan and the resume",
+"next_date": "2026-10-08",
 "company": "co-meridian-software",
 "company_name": "Meridian Software",
 "people": [
@@ -6423,7 +6639,10 @@
 ],
 "hp": "cold",
 "hp_people": "No path yet; three people at the company share a previous employer.",
-"edited": "2026-10-07T12:00:00.000Z"
+"edited": "2026-10-07T12:00:00.000Z",
+"ball": "claude",
+"lane": "active",
+"lane_since": "2026-10-01"
 },
 "updated_at": "2026-10-07T12:00:00.000Z"
 },
@@ -6437,7 +6656,7 @@
 "flag": false,
 "stage": "researching",
 "outcome": null,
-"next": "Ask Amara what the CDO is actually trying to do",
+"next": "Claude: warm paths tonight",
 "next_date": "2026-10-04",
 "company": "co-beacon-health-systems",
 "company_name": "Beacon Health Systems",
@@ -6446,9 +6665,12 @@
 ],
 "meetings": [],
 "tasks": [],
-"hp": "warm reachable",
+"hp": "unchecked",
 "hp_people": "Dr. Amara Osei (CMIO) is a first-degree connection from a board; not yet asked.",
-"edited": "2026-10-07T12:00:00.000Z"
+"edited": "2026-10-07T12:00:00.000Z",
+"ball": "claude",
+"lane": "active",
+"lane_since": "2026-10-01"
 },
 "updated_at": "2026-10-07T12:00:00.000Z"
 },
@@ -6460,18 +6682,21 @@
 "page": "page-0337457b3a",
 "url": "#",
 "flag": false,
-"stage": "shortlist",
+"stage": "researching",
 "outcome": null,
-"next": null,
+"next": "Claude: diligence tonight",
 "next_date": null,
 "company": "co-juniper-education",
 "company_name": "Juniper Education",
 "people": [],
 "meetings": [],
 "tasks": [],
-"hp": "cold",
+"hp": "unchecked",
 "hp_people": "No path.",
-"edited": "2026-10-07T12:00:00.000Z"
+"edited": "2026-10-07T12:00:00.000Z",
+"ball": "claude",
+"lane": "active",
+"lane_since": "2026-10-01"
 },
 "updated_at": "2026-10-07T12:00:00.000Z"
 },
@@ -6483,18 +6708,21 @@
 "page": "page-87ebaad066",
 "url": "#",
 "flag": false,
-"stage": "shortlist",
+"stage": "researching",
 "outcome": null,
-"next": null,
+"next": "Claude: diligence tonight",
 "next_date": null,
 "company": "co-kestrel-aerospace",
 "company_name": "Kestrel Aerospace",
 "people": [],
 "meetings": [],
 "tasks": [],
-"hp": "cold",
+"hp": "unchecked",
 "hp_people": "No path.",
-"edited": "2026-10-07T12:00:00.000Z"
+"edited": "2026-10-07T12:00:00.000Z",
+"ball": "claude",
+"lane": "bench",
+"lane_since": "2026-10-01"
 },
 "updated_at": "2026-10-07T12:00:00.000Z"
 },
@@ -6506,18 +6734,21 @@
 "page": "page-b74ebcdc2a",
 "url": "#",
 "flag": false,
-"stage": "shortlist",
+"stage": "researching",
 "outcome": null,
-"next": null,
+"next": "Claude: warm paths tonight",
 "next_date": null,
 "company": "co-summit-legal",
 "company_name": "Summit Legal",
 "people": [],
 "meetings": [],
 "tasks": [],
-"hp": "cold",
+"hp": "unchecked",
 "hp_people": "No path.",
-"edited": "2026-10-07T12:00:00.000Z"
+"edited": "2026-10-07T12:00:00.000Z",
+"ball": "claude",
+"lane": "bench",
+"lane_since": "2026-10-01"
 },
 "updated_at": "2026-10-07T12:00:00.000Z"
 },
@@ -6529,18 +6760,21 @@
 "page": "page-916f2d5baa",
 "url": "#",
 "flag": false,
-"stage": "shortlist",
+"stage": "researching",
 "outcome": null,
-"next": null,
+"next": "Claude: diligence tonight",
 "next_date": null,
 "company": "co-harborview-hotels",
 "company_name": "Harborview Hotels",
 "people": [],
 "meetings": [],
 "tasks": [],
-"hp": "cold",
+"hp": "unchecked",
 "hp_people": "No path.",
-"edited": "2026-10-07T12:00:00.000Z"
+"edited": "2026-10-07T12:00:00.000Z",
+"ball": "claude",
+"lane": "bench",
+"lane_since": "2026-10-01"
 },
 "updated_at": "2026-10-07T12:00:00.000Z"
 },
@@ -6565,9 +6799,166 @@
 "tasks": [],
 "hp": "warm active",
 "hp_people": "Dana Okafor (Harbor Search) ran the process.",
-"edited": "2026-10-07T12:00:00.000Z"
+"edited": "2026-10-07T12:00:00.000Z",
+"ball": "claude"
 },
 "updated_at": "2026-10-07T12:00:00.000Z"
+},
+{
+"id": "e03175343f",
+"page_id": "page-e03175343f",
+"updated_at": "2026-10-08T09:00:00.000Z",
+"payload": {
+"id": "e03175343f",
+"page": "page-e03175343f",
+"url": "#",
+"flag": false,
+"stage": "researching",
+"outcome": null,
+"next": "Claude: warm paths tonight",
+"next_date": null,
+"company": null,
+"company_name": "Atlas Field Services",
+"people": [],
+"meetings": [],
+"tasks": [],
+"hp": "unchecked",
+"hp_people": "",
+"edited": "2026-10-08T09:00:00.000Z",
+"ball": "claude",
+"lane": "bench",
+"lane_since": "2026-10-01"
+}
+},
+{
+"id": "2292741148",
+"page_id": "page-2292741148",
+"updated_at": "2026-10-08T09:00:00.000Z",
+"payload": {
+"id": "2292741148",
+"page": "page-2292741148",
+"url": "#",
+"flag": false,
+"stage": "researching",
+"outcome": null,
+"next": "Claude: diligence tonight",
+"next_date": null,
+"company": null,
+"company_name": "Pinecrest Media",
+"people": [],
+"meetings": [],
+"tasks": [],
+"hp": "unchecked",
+"hp_people": "",
+"edited": "2026-10-08T09:00:00.000Z",
+"ball": "claude",
+"lane": "bench",
+"lane_since": "2026-10-01"
+}
+},
+{
+"id": "db706b889d",
+"page_id": "page-db706b889d",
+"updated_at": "2026-10-08T09:00:00.000Z",
+"payload": {
+"id": "db706b889d",
+"page": "page-db706b889d",
+"url": "#",
+"flag": false,
+"stage": "researching",
+"outcome": null,
+"next": "Review the drafts, then send the note to Jordan",
+"next_date": "2026-10-08",
+"company": null,
+"company_name": "Tidewater Logistics",
+"people": [],
+"meetings": [],
+"tasks": [],
+"hp": "warm reachable",
+"hp_people": "",
+"edited": "2026-10-08T09:00:00.000Z",
+"ball": "owner",
+"lane": "active",
+"lane_since": "2026-10-01"
+}
+},
+{
+"id": "5f4cd8fe4d",
+"page_id": "page-5f4cd8fe4d",
+"updated_at": "2026-10-08T09:00:00.000Z",
+"payload": {
+"id": "5f4cd8fe4d",
+"page": "page-5f4cd8fe4d",
+"url": "#",
+"flag": false,
+"stage": "researching",
+"outcome": null,
+"next": "Answer the plan: route and what to emphasize",
+"next_date": "2026-10-08",
+"company": null,
+"company_name": "Copperline Energy",
+"people": [],
+"meetings": [],
+"tasks": [],
+"hp": "cold",
+"hp_people": "",
+"edited": "2026-10-08T09:00:00.000Z",
+"ball": "owner",
+"lane": "active",
+"lane_since": "2026-10-01"
+}
+},
+{
+"id": "0657d9f221",
+"page_id": "page-0657d9f221",
+"updated_at": "2026-10-08T09:00:00.000Z",
+"payload": {
+"id": "0657d9f221",
+"page": "page-0657d9f221",
+"url": "#",
+"flag": false,
+"stage": "researching",
+"outcome": null,
+"next": "Claude: strategy tonight",
+"next_date": null,
+"company": null,
+"company_name": "Northwind Labs",
+"people": [],
+"meetings": [],
+"tasks": [],
+"hp": "warm reachable",
+"hp_people": "",
+"edited": "2026-10-08T09:00:00.000Z",
+"ball": "claude",
+"lane": "active",
+"lane_since": "2026-10-01"
+}
+},
+{
+"id": "3a989eeeb4",
+"page_id": "page-3a989eeeb4",
+"updated_at": "2026-10-08T09:00:00.000Z",
+"payload": {
+"id": "3a989eeeb4",
+"page": "page-3a989eeeb4",
+"url": "#",
+"flag": false,
+"stage": "researching",
+"outcome": null,
+"next": "Claude: warm paths tonight",
+"next_date": null,
+"company": null,
+"company_name": "Halcyon Insurance",
+"people": [],
+"meetings": [],
+"tasks": [],
+"hp": "unchecked",
+"hp_people": "",
+"edited": "2026-10-08T09:00:00.000Z",
+"ball": "claude",
+"lane": "bench",
+"lane_since": "2026-10-01"
+}
 }
 ],
 "meetings": [
@@ -9988,6 +10379,8 @@
 "ts": "2026-09-21T17:30:00.000Z",
 "name": "Pixelforge"
 }
-]
+],
+"plan_inputs": [],
+"org_watch": []
 }
 }

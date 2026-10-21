@@ -43,7 +43,8 @@ button.pill{border-radius:999px;padding:2px 8px;font-size:var(--fs-sm);color:var
 button.pill.on{background:var(--accent-soft);border-color:var(--accent);color:var(--text)}
 button.quiet{border:none;background:none;color:var(--faint);padding:2px 4px}
 button.flag{width:32px;padding:0;display:inline-flex;align-items:center;justify-content:center}
-button.flag.on{background:var(--accent-soft);border-color:var(--accent)}
+button.flag.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent2)}
+.vb .flag span{margin-left:6px}
 button.flag.on svg{fill:var(--accent);stroke:var(--accent)}
 textarea,input,select{font:inherit;color:var(--text);background:var(--rail);border:1px solid var(--border);border-radius:6px;padding:7px 10px;width:100%}
 textarea{resize:none;min-height:34px;max-height:170px;overflow:auto;line-height:1.4}
@@ -585,9 +586,76 @@ button.td-undo{font-size:11.5px;padding:1px 7px;color:var(--amber-text);border-c
   .ov{padding:4px 0 20px}.ov-g,.ov-g3{grid-template-columns:minmax(0,1fr)}.ov-g>.sec,.ov-g3>.sec{min-width:0;overflow-x:auto}
   .ov-t th,.ov-t td{padding:5px 4px}
   .hpstrip{display:none} /* the Human path stat cards filled the first screen before any role; desktop keeps them, like the tiles */
-  .mapsection{display:flex;flex-direction:column}.mapsection>*{order:3}.mapsection>.sh{order:0}.mapsection>.mapgrid{order:1;margin-bottom:12px}.mapsection>.fcols{order:2} /* the map first, its filters under it */
+  .mapsection{display:flex;flex-direction:column}.mapsection>*{order:3}.mapsection>.sh{order:0}
+.mapsection>.mapf{order:0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.mapsection>.mapf .pill,.mapsection>.mapf .hint{flex:0 0 auto}.mapsection>.mapgrid{order:1;margin-bottom:12px}.mapsection>.fcols{order:2} /* the map first, its filters under it */
   .detail table,.lv table{display:block;max-width:100%;overflow-x:auto} /* a wide table in a role or opportunity page scrolls in place instead of zooming the page out */
   .stiles{grid-template-columns:1fr 1fr}
+}
+/* Pipeline (board v3, 2026-10-21): stage strip, stage columns, cards with a step bar, the opportunity page. */
+.pp-strip{display:flex;gap:4px;margin:4px 0 16px;overflow-x:auto;scrollbar-width:none}
+.pp-strip::-webkit-scrollbar{display:none}
+.pp-sg{flex:1 0 auto;display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:9px 14px;background:var(--surface);border:1px solid var(--border);color:var(--text2);text-decoration:none;font-size:var(--fs-sm);clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%,10px 50%)}
+.pp-sg:first-child{clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%);border-radius:8px 0 0 8px}
+.pp-sg.end{flex:0 0 auto;clip-path:none;border-radius:8px;margin-left:6px;background:var(--chip);border-color:transparent}
+.pp-sg.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent2)}
+.pp-sg span{color:var(--muted)}
+.pp-cols{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;align-items:start}
+.pp-col{display:flex;flex-direction:column;gap:8px;min-width:0}
+.pp-ch{display:flex;justify-content:space-between;padding:2px 2px 4px;color:var(--text);text-decoration:none;font-size:var(--fs-sm);border-bottom:2px solid var(--border)}
+.pp-ch span,.pp-none,.pp-more{color:var(--muted);font-size:var(--fs-sm)}
+.pp-more{text-decoration:none;padding:4px 2px}
+.pp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.pp-card{display:block;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:inherit;text-decoration:none;min-width:0}
+.pp-card:hover{border-color:var(--accent)}
+.pp-card.sm{padding:10px 12px}
+.pp-top{display:flex;justify-content:space-between;gap:8px;font-size:var(--fs-sm);color:var(--muted)}
+.pp-co{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pp-t{font-weight:600;margin:2px 0 10px;line-height:1.3}
+.pp-card.sm .pp-t{font-size:var(--fs-sm)}
+.pp-bar{display:flex;gap:3px}
+.pp-bar i{flex:1;height:6px;border-radius:3px;background:var(--border2)}
+.pp-bar i.ok{background:var(--green)}
+.pp-bar i.cur{background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--faint)}
+.pp-bar i.cur.owner{box-shadow:inset 0 0 0 1.5px var(--amber);background:var(--amber-soft)}
+.pp-bar i.cur.claude{box-shadow:inset 0 0 0 1.5px var(--accent);background:var(--accent-soft)}
+.pp-lab{font-size:12px;color:var(--muted);margin:5px 0 8px}
+.pp-lab b{color:var(--text2);font-weight:600}
+.pp-next{font-size:var(--fs-sm);color:var(--text2);line-height:1.35}
+.pp-nh{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.pp-card .pp-nt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pp-next .mono{color:var(--muted);white-space:nowrap}
+.pp-next .pp-late{color:var(--red)}
+.pp-who{flex:0 0 auto;font-size:11px;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--chip);color:var(--muted)}
+.pp-who.owner{background:var(--amber-soft);color:var(--amber-text)}
+.pp-who.claude{background:var(--accent-soft);color:var(--accent2)}
+.pp-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px}
+.pp-bench{margin-top:18px}
+.pe-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:14px}
+.pe-card{cursor:pointer}
+.pe-last{font-size:12px;color:var(--muted);margin-top:6px}
+.pp-bench summary{cursor:pointer;font-weight:600;padding:6px 0;margin-bottom:8px}
+.pp-bench summary .mono{color:var(--muted);font-weight:400}
+.op-head{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:6px 0 14px}
+.op-chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.op-now{padding:10px 14px;margin:12px 0 16px}
+.pp-steps{display:flex;gap:4px}
+.pp-st{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:8px 10px;border-top:4px solid var(--border2);font-size:var(--fs-sm);color:var(--muted)}
+.pp-st i{font-style:normal;font-size:11px;font-weight:600;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;background:var(--chip)}
+.pp-st.ok{border-top-color:var(--green);color:var(--text2)}
+.pp-st.ok i{background:var(--green);color:#fff}
+.pp-st.cur{color:var(--text);font-weight:600}
+.pp-st.cur.owner{border-top-color:var(--amber)}
+.pp-st.cur.claude{border-top-color:var(--accent)}
+.pp-st.cur.them{border-top-color:var(--faint)}
+.pp-st em{font-style:normal;font-weight:400;font-size:11px;color:var(--muted)}
+@media (max-width:1100px){.pp-cols{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:900px){
+  .pp-cols{grid-template-columns:1fr}
+  .pp-strip{flex-wrap:wrap;overflow:visible;gap:6px}
+  .pp-sg,.pp-sg:first-child,.pp-sg.end{flex:1 1 auto;clip-path:none;border-radius:8px;margin:0;padding:7px 10px}
+  .pp-grid{grid-template-columns:1fr}
+  .pp-steps{overflow-x:auto;scrollbar-width:none}
+  .pp-st{flex:0 0 88px;padding:8px 6px}
 }
 </style>
 </head>
@@ -939,10 +1007,9 @@ function callBlock(j,opts){const s=fb(j.id);
 function controls(j,opts){const s=fb(j.id);const d=draft[j.id];const cur=d||{v:s.v,cal:s.cal,note:s.note};const v=cur.v;const inbox=opts&&opts.inbox;const dirty=isDirty(j.id);
   const stage=stageRow(j);
   return`<div class="ctl" data-ctl="${j.id}" data-inbox="${inbox?1:0}">
-   <div class="vb"><button class="pursue${v==="Pursue"?" on":""}" data-v="Pursue" data-id="${j.id}">Pursue</button><button class="maybe${v==="Maybe"?" on":""}" data-v="Maybe" data-id="${j.id}">Maybe</button><button class="${v==="Pass"?"on":""}" data-v="Pass" data-id="${j.id}">Pass</button><button class="flag${s.flag?" on":""}" data-flag="${j.id}" title="Excited about this one">${s.flag?ICON.flagOn:ICON.flag}</button></div>
-   <div class="cal"><span>Score feels</span>${["Too high","About right","Too low"].map(c=>`<button class="pill${cur.cal===c?" on":""}" data-cal="${c}" data-id="${j.id}">${c}</button>`).join("")}</div>
-   <div class="notewrap"><textarea data-note="${j.id}" rows="1" placeholder="${inbox?"Note, then Enter to submit":"Note"}">${esc(cur.note)}</textarea><span class="saved" data-saved="${j.id}" hidden></span></div>
-   <div class="sub"><button data-submit="${j.id}"${v?"":" disabled"}>Submit</button><span class="st${dirty&&v?" un":""}">${dirty?(v?"Not saved yet":"Pick a verdict"):(s.v?"Saved as "+esc(s.v)+(s.cal?", score "+esc(s.cal.toLowerCase()):""):"")}</span></div>
+   <div class="vb"><button class="pursue${v==="Pursue"?" on":""}" data-v="Pursue" data-id="${j.id}">Pursue</button><button class="${v==="Pass"?"on":""}" data-v="Pass" data-id="${j.id}">Pass</button><button class="flag${s.flag?" on":""}" data-flag="${j.id}" title="Flag it: particularly interesting">${s.flag?ICON.flagOn:ICON.flag}<span>${s.flag?"Flagged":"Flag"}</span></button></div>
+   <div class="notewrap"><textarea data-note="${j.id}" rows="1" placeholder="${s.flag?"What makes it interesting?":"Comment"}${inbox?" (Enter submits)":""}">${esc(cur.note)}</textarea><span class="saved" data-saved="${j.id}" hidden></span></div>
+   <div class="sub"><button data-submit="${j.id}"${v?"":" disabled"}>Submit</button><span class="st${dirty&&v?" un":""}">${dirty?(v?"Not saved yet":"Pick a verdict"):(s.v?"Saved as "+esc(s.v):"")}</span></div>
    ${stage}</div>`;}
 const expanded=new Set();
 function row(j,opts){const x=expanded.has(j.id);const sc=j.score==null?"":j.score;const scls=(j.score||0)>=10?"hi":isBorder(j)?"bl":"";
@@ -997,7 +1064,7 @@ function connCard(j){const o=oppOf(j);if(verdictOf(j)!=="pursue")return"";
   const row=(inner,kind,target)=>`<div class="ln">${inner}<button class="unlink" data-unlink="${esc(j.id)}" data-kind="${kind}" data-target="${esc(target)}" title="Unlink">×</button></div>`;
   return`<div class="sec card"><h4>Connections <span class="hint" style="font-weight:400">Notion${o.url?` · <a href="${esc(o.url)}" target="_blank" rel="noopener">open the page</a>`:""}</span></h4>
    <div class="nw-lab">Company</div><div class="ln">${o.company_name?`<b>${esc(o.company_name)}</b>`:'<span class="faint">Not linked</span>'}</div>
-   <div class="nw-lab">People</div>${who.length?who.map(c=>row(`<a href="#network/${esc(c.id)}"><b>${esc(c.name)}</b></a><span class="faint">${esc([c.role,c.company].filter(Boolean).join(" · "))}</span>`,"person",c.id)).join(""):'<div class="faint">No one linked yet</div>'}
+   <div class="nw-lab">People</div>${who.length?who.map(c=>row(`<a href="#people/${esc(c.id)}"><b>${esc(c.name)}</b></a><span class="faint">${esc([c.role,c.company].filter(Boolean).join(" · "))}</span>`,"person",c.id)).join(""):'<div class="faint">No one linked yet</div>'}
    ${sugg.length?`<div class="sugg">${sugg.map(c=>`<button class="pill" data-link="${esc(j.id)}" data-kind="person" data-target="${esc(c.id)}">+ ${esc(c.name)}</button>`).join("")}</div>`:""}
    <div class="row"><select class="linksel" data-linksel="${esc(j.id)}" data-kind="person"><option value="">Link a person…</option>${freeP.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}${c.company?" — "+esc(c.company):""}</option>`).join("")}</select></div>
    <div class="nw-lab">Meetings</div>${mts.length?mts.map(m=>row(`${m.url?`<a href="${esc(m.url)}" target="_blank" rel="noopener"><b>${esc(m.name)}</b></a>`:`<b>${esc(m.name)}</b>`}<span class="mono">${esc(fmtDate(m.date)||"")}</span><span class="faint">${esc(m.type||"")}</span>`,"meeting",m.id)).join(""):'<div class="faint">No meetings linked yet</div>'}
@@ -1016,38 +1083,30 @@ function officeCard(j){const o=j.office||{};const pin=pinOf(j);const loc=j.locat
 const MAPF_KEY="board.mapf2";
 let mapOff=(()=>{try{const x=JSON.parse(localStorage.getItem(MAPF_KEY)||"null");if(Array.isArray(x))return new Set(x);}catch(e){}return new Set();})();
 const mapOn=spec=>!mapOff.has(spec);
-const pursueOn=()=>boardStages().some(s=>mapOn("st:"+s));
 function toggleMapF(spec){
-  if(spec==="v:pursue"){const on=pursueOn();boardStages().forEach(s=>{if(on)mapOff.add("st:"+s);else mapOff.delete("st:"+s);});}
-  else if(mapOff.has(spec))mapOff.delete(spec);else mapOff.add(spec);
+  if(mapOff.has(spec))mapOff.delete(spec);else mapOff.add(spec);
   try{localStorage.setItem(MAPF_KEY,JSON.stringify([...mapOff]));}catch(e){}}
-const mapPool=()=>JOBS.filter(j=>!excl(j)&&!isClosed(j)&&(verdictOf(j)==="pursue"||verdictOf(j)==="maybe"));
-function mapPass(j){const v=verdictOf(j);
-  if(v==="pursue"){if(!mapOn("st:"+stageOf(j)))return false;}
-  else if(!mapOn("v:"+v))return false;
-  return mapOn("wm:"+workModel(j))&&mapOn("hp:"+hpKey(j));}
+/* Board v3 (the owner, 2026-10-21): the Map shows where the live opportunities are, filtered by stage and by type of role
+   ("you would just have the map to be able to see where these opportunities are and be able to filter down by the
+   types of opportunities"). No Maybe, no startups layer (startups get a home of their own). */
+const mapPool=()=>JOBS.filter(j=>!excl(j)&&PIPE_LIVE.includes(pipeStage(j)));
+const mapPass=j=>mapOn("ps:"+pipeStage(j))&&mapOn("rt:"+roleGroup(j))&&mapOn("wm:"+workModel(j));
 let MAPJOBS=[];
-function viewMap(){const pool=mapPool();
-  const jobs=(mapOn("layer:roles")?pool.filter(mapPass):[]).sort((a,b)=>((verdictOf(a)==="pursue"?0:1)-(verdictOf(b)==="pursue"?0:1))||((b.score||0)-(a.score||0)));
+function viewMap(){if(typeof MSF!=="undefined")MSF.on=false;const pool=mapPool();
+  const jobs=pool.filter(mapPass).sort((a,b)=>PIPE_LIVE.indexOf(pipeStage(b))-PIPE_LIVE.indexOf(pipeStage(a))||((b.score||0)-(a.score||0)));
   const pinned=jobs.filter(pinOf),remote=jobs.filter(j=>!pinOf(j)&&isRemoteRole(j)),unknown=jobs.filter(j=>!pinOf(j)&&!isRemoteRole(j));
   MAPJOBS=pinned;
   const cnt=f=>pool.filter(f).length;
-  const chip=(spec,l,on,n)=>on||n?`<button class="pill${on?" on":""}" data-mapf="${spec}">${l} <span class="mono">${n}</span></button>`:"";
-  const sub=j=>{const o=j.office||{};return`${esc(j.company)} · <span class="mono">${j.score??""}</span> · ${verdictOf(j)==="pursue"?stageLabel(stageOf(j)):"Maybe"}${o.label?" · "+esc(o.label):""}`;};
-  const mr=(j,attr)=>`<div class="mr" ${attr}><b><i class="${verdictOf(j)}"></i>${esc(j.title)}</b><span>${sub(j)}</span></div>`;
+  const chip=(spec,l,on,n)=>on||n?`<button class="pill${on?" on":""}" data-mapf="${spec}">${esc(l)} <span class="mono">${n}</span></button>`:"";
+  const sub=j=>{const o=j.office||{};return`${esc(j.company)} · <span class="mono">${j.score??""}</span> · ${esc(pipeName(pipeStage(j)))}${o.label?" · "+esc(o.label):""}`;};
+  const mr=(j,attr)=>`<div class="mr" ${attr}><b><i class="pursue"></i>${esc(j.title)}</b><span>${sub(j)}</span></div>`;
   const grp=(t,arr,attr)=>arr.length?`<div class="day"><b>${t}</b><span>${arr.length}</span></div>${arr.map(j=>mr(j,attr(j))).join("")}`:"";
   const open=j=>`data-open="${esc(j.id)}"`;
-  const rolesOn=mapOn("layer:roles");const suOn=typeof MSF!=="undefined"&&MSF.on;
-  return`<div class="sh"><h2>Map <span>${pinned.length} pinned · ${remote.length} remote · ${unknown.length} office unknown</span></h2><div class="hint">Pursue and Maybe roles at the office they hire into, and the startup scene beneath them</div></div>
-   <div class="fcols">
-    <div class="fcol${rolesOn?"":" off"}"><button class="fh" data-mapf="layer:roles" title="${rolesOn?"Hide the roles":"Show the roles"}"><i class="dot"></i>Roles <span class="mono">${pool.length}</span><span class="tg">${rolesOn?"shown":"hidden"}</span></button>
-     <div class="mapf">${chip("v:pursue","Pursue",pursueOn(),cnt(j=>verdictOf(j)==="pursue"))}${chip("v:maybe","Maybe",mapOn("v:maybe"),cnt(j=>verdictOf(j)==="maybe"))}<span class="sep"></span><span class="hint">Work</span>${["Remote","Hybrid","On-site","Unstated"].map(w=>chip("wm:"+w,w,mapOn("wm:"+w),cnt(j=>workModel(j)===w))).join("")}</div>
-     <div class="mapf"><span class="hint">Stage</span>${boardStages().map(s=>chip("st:"+s,stageLabel(s),mapOn("st:"+s),cnt(j=>stageOf(j)===s))).join("")}<span class="sep"></span><span class="hint">Human path</span>${HP_KEYS.map(([k,l])=>chip("hp:"+k,l,mapOn("hp:"+k),cnt(j=>hpKey(j)===k))).join("")}</div></div>
-    <div class="fcol su${suOn?"":" off"}"><button class="fh" data-slayer="1" title="${suOn?"Hide the startups":"Show the startups"}"><i class="dot su"></i>Startups <span class="mono">${typeof startupsMapPool==="function"?STARTUPS.filter(s=>s.office&&s.office.lat!=null&&svOf(s)&&svOf(s)!=="pass").length:0}</span><span class="tg">${suOn?"shown":"hidden"}</span></button>
-     ${typeof sMapBand==="function"?sMapBand():""}</div>
-   </div>
+  return`<div class="sh"><h2>Map <span>${pinned.length} pinned · ${remote.length} remote · ${unknown.length} office unknown</span></h2><div class="hint">Live opportunities at the office they hire into</div></div>
+   <div class="mapf"><span class="hint">Stage</span>${PIPE_LIVE.map(k=>chip("ps:"+k,pipeName(k),mapOn("ps:"+k),cnt(j=>pipeStage(j)===k))).join("")}</div>
+   <div class="mapf"><span class="hint">Type</span>${ROLE_GROUPS.map(([k,l])=>chip("rt:"+k,l,mapOn("rt:"+k),cnt(j=>roleGroup(j)===k))).join("")}<span class="sep"></span><span class="hint">Work</span>${["Remote","Hybrid","On-site","Unstated"].map(w=>chip("wm:"+w,w,mapOn("wm:"+w),cnt(j=>workModel(j)===w))).join("")}</div>
    <div class="mapgrid"><div class="mapwrap"><div class="bigmap" data-map="all"></div>${window.maplibregl?'<div class="outside" id="outside" hidden></div>':'<div class="emptybig" style="margin:24px"><b>Map library did not load</b><span>The lists still work.</span></div>'}</div>
-    <div class="mapside">${grp("Pinned",pinned,j=>`data-pin="${esc(j.id)}"`)}${grp("Remote",remote,open)}${grp("Office unknown",unknown,open)}${jobs.length?"":'<div class="empty" style="margin:12px">No roles match these filters</div>'}${typeof sMapSide==="function"?sMapSide():""}</div></div>`;}
+    <div class="mapside">${grp("Pinned",pinned,j=>`data-pin="${esc(j.id)}"`)}${grp("Remote",remote,open)}${grp("Office unknown",unknown,open)}${jobs.length?"":'<div class="empty" style="margin:12px">No roles match these filters</div>'}</div></div>`;}
 const MAP_STYLE="https://tiles.openfreemap.org/styles/positron";
 const CORE=[[-71.122,42.327],[-71.012,42.392]]; /* [lng,lat] SW, NE: Back Bay, downtown, South Boston, Cambridge, Charlestown, East Boston */
 const HOVER=window.matchMedia("(hover: hover)");
@@ -1166,7 +1225,7 @@ function netCard(c,on){const id=esc(c.id);return`<div class="nw-card k-${netKind
 function netTr(c,on){return`<tr class="k-${netKind(c)}${on?" on":""}" data-nsel="${esc(c.id)}"><td><div class="nw-who"><b>${esc(c.name||"(no name)")}</b><span>${esc([c.role,c.company].filter(Boolean).join(" · "))}</span></div></td>
   <td><div class="nw-next"><span>${c.next_type?`<b style="font-weight:600">${esc(c.next_type)}:</b> `:""}${esc(c.next_action||"")}</span>${c.hook?`<span class="h">${esc(c.hook)}</span>`:""}</div></td>
   <td>${netDue(c)}</td><td>${netPill(c.status)}</td><td>${netMove(c)}</td></tr>`;}
-function netMini(c){return`<a class="nw-mini" href="#network/${esc(c.id)}"><b>${esc(c.name||"(no name)")}</b>${netPill(c.status)}<span>${esc(c.next_action||"")}</span>${netDue(c)}</a>`;}
+function netMini(c){return`<a class="nw-mini" href="#people/${esc(c.id)}"><b>${esc(c.name||"(no name)")}</b>${netPill(c.status)}<span>${esc(c.next_action||"")}</span>${netDue(c)}</a>`;}
 /* Done logs what happened and sets the next touch; the same form serves the Network pane and the To-dos pane. */
 function netDoneForm(c){const id=esc(c.id);return`<form class="doneform" data-doneform="${id}">
      <div class="hint">What happened today</div>
@@ -1183,12 +1242,12 @@ function netPane(c){const id=esc(c.id);const open=doneOpen===c.id;const roles=ro
   /* Touch history: the Notion page's touch log (Done appends to it); the last-touch fields until one exists. */
   const hist=c.touches&&c.touches.length?c.touches:(c.last_date||c.last_type||c.last_note?[{date:c.last_date,type:c.last_type,note:c.last_note}]:[]);
   const last=hist.length?hist.map(t=>`<div class="ln">${t.date?`<span class="mono">${esc(fmtDate(t.date))}</span>`:""}${t.type?`<b>${esc(t.type)}</b>`:""}<span>${esc(t.note||"")}</span></div>`).join(""):'<div class="faint">Nothing logged yet</div>';
-  const conn=[...others.map(x=>`<div class="ln"><a href="#network/${esc(x.id)}"><b>${esc(x.name)}</b></a>${netPill(x.status)}<span class="faint">${esc(x.role||"")}</span></div>`),
+  const conn=[...others.map(x=>`<div class="ln"><a href="#people/${esc(x.id)}"><b>${esc(x.name)}</b></a>${netPill(x.status)}<span class="faint">${esc(x.role||"")}</span></div>`),
     ...first.map(x=>`<div class="ln">${x.url?`<a href="${esc(x.url)}" target="_blank" rel="noopener"><b>${esc(x.name)}</b></a>`:`<b>${esc(x.name)}</b>`}<span>${esc(x.title||"")}</span><span class="faint">LinkedIn 1st${x.since?" since "+esc(x.since):""}</span></div>`),
     ...second.map(x=>`<div class="ln"><b>${esc(x.name)}</b><span>${esc(x.title||"")}</span><span class="faint">${x.via?"via "+esc(x.via):"2nd degree"}</span></div>`)];
   const page=NPAGES[c.id];
   const form=open?netDoneForm(c):"";
-  return`<a class="nw-back" href="#network">‹ Everyone</a>
+  return`<a class="nw-back" href="#people">‹ Everyone</a>
   <div class="nw-ph"><h3>${esc(c.name||"(no name)")}</h3>${c.role||c.company?`<div class="sub">${esc([c.role,c.company].filter(Boolean).join(" · "))}</div>`:""}
    <div class="nw-meta"><select data-cstatus="${id}" class="${stClass(c.status)}" aria-label="Status">${netOpts(NET_STATUS,c.status||"",c.status?null:"No status")}</select>${c.how?`<span>${esc(c.how)}</span>`:""}${c.priority?`<span>Priority ${esc(c.priority)}</span>`:""}${c.linkedin?`<a href="${esc(c.linkedin)}" target="_blank" rel="noopener">LinkedIn</a>`:""}<a href="${esc(c.url||"#")}" target="_blank" rel="noopener">Open in Notion</a></div>
    ${c.linkedin?"":`<div class="noli"><span>No LinkedIn yet:</span><a href="https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent([c.name,c.company].filter(Boolean).join(" "))}" target="_blank" rel="noopener">find</a><input data-clinked="${id}" placeholder="paste the profile URL, then Enter"></div>`}</div>
@@ -1205,7 +1264,8 @@ function netPane(c){const id=esc(c.id);const open=doneOpen===c.id;const roles=ro
   ${page&&page.html?`<details class="nw-vault" open><summary>Vault page · ${esc(page.file)}</summary><div class="doc">${page.html}</div></details>`:""}`;}
 function netLine(j){const cs=contactsOf(j).filter(c=>(c.next_action||c.next_type)&&!netQuiet(c)).sort((a,b)=>String(a.next_date||"9").localeCompare(String(b.next_date||"9")));
   if(!cs.length)return"";const c=cs[0];
-  return`<div class="netline"><a href="#network/${esc(c.id)}">Network: ${esc(c.name)}</a>${c.next_type?" · "+esc(c.next_type):""}${c.next_date?` · <span class="${dueKind(c)==="overdue"?"od":""}">due ${esc(fmtDate(c.next_date))}</span>`:""}${cs.length>1?` · +${cs.length-1}`:""}</div>`;}
+  return`<div class="netline"><a href="#people/${esc(c.id)}">Network: ${esc(c.name)}</a>${c.next_type?" · "+esc(c.next_type):""}${c.next_date?` · <span class="${dueKind(c)==="overdue"?"od":""}">due ${esc(fmtDate(c.next_date))}</span>`:""}${cs.length>1?` · +${cs.length-1}`:""}</div>`;}
+function netForm(){return addOpen?`<form class="card addp" id="addPerson"><div class="grid2"><input name="name" placeholder="Name" required><input name="company" placeholder="Company"><input name="role" placeholder="Role"><select name="how">${netOpts(NET_HOW,"","How connected")}</select><select name="status">${netOpts(NET_STATUS,"Not contacted")}</select><select name="next_type">${netOpts(NET_TYPES,"","Next touch type")}</select></div><div class="grid2"><input name="next_action" placeholder="Next touch: what"><input type="date" name="next_date"></div><input name="hook" placeholder="Hook: why reach out now"><input name="linkedin" placeholder="LinkedIn profile URL (expected for everyone here)"><div class="sub"><button type="submit">Add to Notion</button><button type="button" class="quiet" data-addperson="1">Cancel</button></div></form>`:"";}
 function viewNetwork(arg){const all=CONTACTS.slice().sort(netUrgent);const pool=all.filter(c=>inLens(c,netLens));
   /* Do now is the next 7 days, Do later everything else; no one sits in both (the owner, 2026-09-15). */
   const now=pool.filter(c=>["overdue","today","week"].includes(netKind(c))),later=pool.filter(c=>!now.includes(c));
@@ -1214,7 +1274,7 @@ function viewNetwork(arg){const all=CONTACTS.slice().sort(netUrgent);const pool=
   const pick=all.find(c=>c.id===arg)||(SPLIT.matches?(now[0]||pool[0]):null);
   const count=k=>pool.filter(c=>netKind(c)===k).length;
   const tabs=`<div class="mapf nw-lens">${NET_LENS.map(([k,l])=>`<button class="pill${netLens===k?" on":""}" data-netlens="${k}">${esc(l)} <span class="mono">${all.filter(c=>inLens(c,k)).length}</span></button>`).join("")}</div>`;
-  const form=addOpen?`<form class="card addp" id="addPerson"><div class="grid2"><input name="name" placeholder="Name" required><input name="company" placeholder="Company"><input name="role" placeholder="Role"><select name="how">${netOpts(NET_HOW,"","How connected")}</select><select name="status">${netOpts(NET_STATUS,"Not contacted")}</select><select name="next_type">${netOpts(NET_TYPES,"","Next touch type")}</select></div><div class="grid2"><input name="next_action" placeholder="Next touch: what"><input type="date" name="next_date"></div><input name="hook" placeholder="Hook: why reach out now"><input name="linkedin" placeholder="LinkedIn profile URL (expected for everyone here)"><div class="sub"><button type="submit">Add to Notion</button><button type="button" class="quiet" data-addperson="1">Cancel</button></div></form>`:"";
+  const form=netForm();
   const body=all.length?(shown.length?`<div class="nw-tw"><table class="nw-t"><thead><tr><th>Person</th><th>Next step · why now</th><th>Due</th><th>Status</th><th>Whose move</th></tr></thead><tbody>${shown.map(c=>netTr(c,pick&&c.id===pick.id)).join("")}</tbody></table></div>`:lensed?'<div class="empty">No one else in this lens</div>':'<div class="empty">No one beyond the next 7 days</div>')
     :'<div class="emptybig"><b>No contacts on the board yet</b><span>They come from the Notion Network database on the next refresh, or say "sync board".</span></div>';
   return`<div class="nw${arg&&pick?" has-sel":""}"><div class="nw-main"><div class="sh"><h2>Network <span>${pool.length}${lensed?" of "+all.length:""} people · ${count("overdue")} overdue · ${count("today")} today · ${count("week")} this week</span></h2><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="hint">Notion is the home; edits here save there</span><button data-addperson="1">${addOpen?"Close":"Add person"}</button></div></div>
@@ -1285,7 +1345,7 @@ function tdPane(i){const k=esc(i.key);
     open=`<a class="chip pursue" href="#job/${esc(i.id)}">Open the role</a>`;}
   else if(i.kind==="person"){const c=i.c;head=`<div class="hint">${esc(c.name||"")}${c.company?" · "+esc(c.company):""}${c.status?" · "+esc(c.status):""}</div><h3>${esc(i.text)}</h3>`;
     body=`${c.hook?`<div class="nw-box why"><div class="nw-lab">Why now</div><div>${esc(c.hook)}</div></div>`:""}${doneOpen===c.id&&!i.done?netDoneForm(c).replace('<form class="doneform"','<form class="doneform" data-tstage="'+k+'"').replace("Save to Notion","Stage it"):""}${c.notes?`<div class="nw-sec"><div class="nw-lab">Notes</div><div class="nw-notes">${esc(c.notes)}</div></div>`:""}`;
-    open=`<a class="chip" href="#network/${esc(c.id)}">Open the person</a>`;}
+    open=`<a class="chip" href="#people/${esc(c.id)}">Open the person</a>`;}
   else{const t=i.t;head=`<div class="hint">${esc(i.who)} · ${esc(i.sub)}</div><h3>${esc(i.text)}</h3>`;
     body=t.notes?`<div class="nw-sec"><div class="nw-lab">Notes</div><div class="nw-notes">${esc(t.notes)}</div></div>`:"";
     open=`<a class="chip" href="${esc(t.url||"#")}" target="_blank" rel="noopener">Open in Notion</a>`;}
@@ -1441,11 +1501,19 @@ function todayParts(){const k3=plusDays(3);
   const iv=items.filter(i=>i.kind==="role"&&stageOf(i.j)==="interviewing"&&i.date&&i.date<=k3);const ivk=new Set(iv.map(i=>i.key));
   const rest=items.filter(i=>!ivk.has(i.key));
   const mine=rest.filter(i=>live(i)&&i.ball!=="them");
+  /* People on Today (the owner, 2026-10-21: Today is the one list to act from, People the overview): a new intro due now and a
+     call booked for today or tomorrow compete for the top three; any other due touch sits with Also due; a touch not yet
+     due stays on People only. */
+  const ppl=rest.filter(i=>i.kind==="person"&&!i.done);
+  const pIntro=ppl.filter(i=>isIntro(i.c)&&(i.b==="overdue"||i.b==="today"));
+  const pCall=ppl.filter(i=>!pIntro.includes(i)&&isBooked(i.c)&&i.date<=plusDays(1));
+  const pDue=ppl.filter(i=>!pIntro.includes(i)&&!pCall.includes(i)&&(i.b==="overdue"||i.b==="today"));
   const plans=JOBS.filter(planOpen).sort((a,b)=>(b.score||0)-(a.score||0));const planned=new Set(plans.map(j=>j.id));
   const decs=todayDecisions(all).filter(d=>!planned.has(d.id)&&!ivk.has(d.key));const decided=new Set(decs.map(d=>d.id));
   const due=mine.filter(i=>!i.nostep&&!planned.has(i.j.id)&&!decided.has(i.j.id)&&(i.b==="overdue"||i.b==="today")).sort((a,b)=>((b.j.score||0)-(a.j.score||0))||(a.date||"").localeCompare(b.date||""));
   const reply=mine.filter(i=>/^Reply to /.test(i.text)&&!due.includes(i));
-  const ranked=[...iv.map(i=>({i,why:"Interview "+tdWhen(i).replace(/^(Today|Tomorrow)$/,m=>m.toLowerCase())})),...plans.map(j=>({j,why:"Plan waiting on your answer"})),
+  const ranked=[...iv.map(i=>({i,why:"Interview "+tdWhen(i).replace(/^(Today|Tomorrow)$/,m=>m.toLowerCase())})),...pCall.map(i=>({i,why:"Call "+(i.date===todayIso()?"today":"tomorrow")})),...plans.map(j=>({j,why:"Plan waiting on your answer"})),
+    ...pIntro.map(i=>({i,why:"New intro: reply and book"})),
     ...[...due.map(i=>({i,why:(i.b==="overdue"?tdWhen(i):"Due today")+" · fit "+(i.j.score??"?")})),...decs.filter(d=>d.dec==="stale").map(i=>({i,why:i.decWhy+" · fit "+(i.j.score??"?")}))]
       .sort((a,b)=>(b.i.j.score||0)-(a.i.j.score||0)),...reply.map(i=>({i,why:"They wrote back"})),
     ...decs.filter(d=>d.dec!=="stale").map(i=>({i,why:i.decWhy}))];
@@ -1453,12 +1521,12 @@ function todayParts(){const k3=plusDays(3);
   const left=l=>l.filter(i=>!topk.has(i.key));
   const notDec=l=>l.filter(i=>!decided.has(i.id)||i.kind!=="role");
   return{items,top,decs:left(decs),iv:left(iv),plans:plans.filter(j=>!topk.has("plan:"+j.id)),
-    now:notDec(left(mine.filter(i=>(i.b==="overdue"||i.b==="today")&&!(i.kind==="role"&&planned.has(i.id))))),nostep:notDec(left(mine.filter(i=>i.b==="nostep"))),soon:left(mine.filter(i=>!["overdue","today","nostep"].includes(i.b))),
-    people:rest.filter(i=>i.kind==="person"),theirs:notDec(rest.filter(i=>live(i)&&i.ball==="them")),
+    now:notDec(left(mine.filter(i=>(i.b==="overdue"||i.b==="today")&&!(i.kind==="role"&&planned.has(i.id))))),nostep:notDec(left(mine.filter(i=>i.b==="nostep"))),pnow:left([...pCall,...pIntro,...pDue]),soon:left(mine.filter(i=>!["overdue","today","nostep"].includes(i.b))),
+    people:[],theirs:notDec(rest.filter(i=>live(i)&&i.ball==="them")),
     bench:notDec(rest.filter(i=>i.kind==="role"&&i.lane==="bench")),paused:rest.filter(i=>i.kind==="role"&&i.lane==="paused")};}
 const todayCount=()=>todayParts().top.length;
 function viewToday(arg){const t=todayParts();
-  const all=[...t.top.filter(r=>r.i).map(r=>r.i),...t.iv,...t.now,...t.nostep,...t.soon,...t.people,...t.theirs,...t.bench,...t.paused];
+  const all=[...t.top.filter(r=>r.i).map(r=>r.i),...t.iv,...t.now,...t.pnow,...t.nostep,...t.soon,...t.people,...t.theirs,...t.bench,...t.paused];
   const sel=all.find(i=>i.key===arg)||(SPLIT.matches?(t.top.find(r=>r.i)||{}).i||null:null);
   const on=i=>!!(sel&&i.key===sel.key);
   const row=(i,why)=>tdRow(i,on(i),why||i.dec?{why:why||i.decWhy,extra:i.decBtns}:null)+(!SPLIT.matches&&on(i)?`<div class="td-drawer">${tdPane(i)}</div>`:"");
@@ -1469,26 +1537,26 @@ function viewToday(arg){const t=todayParts();
   const runs=[];t.top.forEach(r=>{const last=runs[runs.length-1];if(r.i&&last&&last.rows)last.rows.push(r);else runs.push(r.i?{rows:[r]}:{plan:r.j});});
   const first=t.top.length?`<div class="td-grp td-top"><div class="td-gh">Do these first<span>${t.top.length}</span></div>${runs.map(x=>x.rows?`<div class="td-card">${x.rows.map(r=>row(r.i,r.why)).join("")}</div>`:planCard(x.plan)).join("")}</div>`:"";
   const restPlans=t.plans.length?`<div class="td-grp"><div class="td-gh">Plans to answer<span>${t.plans.length}</span></div><div class="hint">Nothing is drafted until you answer. Approve as is, or say what to change; Sync sends it.</div>${t.plans.map(planCard).join("")}</div>`:"";
-  const inner=sec("dec","Decisions",t.decs)+sec("iv","Interviews, next 3 days",t.iv)+restPlans+sec("now","Also due · "+fmtDate(todayIso()),t.now)+sec("ns","Active, no next step yet",t.nostep)
+  const inner=sec("dec","Decisions",t.decs)+sec("iv","Interviews, next 3 days",t.iv)+restPlans+sec("now","Also due · "+fmtDate(todayIso()),[...t.now,...t.pnow])+sec("ns","Active, no next step yet",t.nostep)
     +sec("soon","Coming up",t.soon)+sec("ppl","Relationships",t.people)+sec("them","Waiting on them",t.theirs)
     +sec("bench","Bench",t.bench,true,"Quick research runs on these too. Promote one when Active has room.")+sec("paused","Paused",t.paused,true);
   const n=t.decs.length+t.iv.length+t.plans.length+t.now.length+t.nostep.length+t.soon.length+t.people.length+t.theirs.length+t.bench.length+t.paused.length;
   const shut=!tdFold.has("rest");
   const more=n?`<div class="td-grp"><button class="td-gh${shut?" fold":""}" data-tfold="rest">Everything else<span>${n}</span></button>${shut?"":inner}</div>`:"";
   const ae=activeEarly();
-  return`<div class="sh"><h2>Today <span>${t.top.length} to do first · Active ${ae}/${ACTIVE_CAP}</span></h2><div class="hint">Ranked: interviews, then plans, then due or stalled moves on Active roles by fit, then replies and decisions. Sync saves changes to Notion.</div></div>${tdBar()}
+  return`<div class="sh"><h2>Today <span>${t.top.length} to do first · Active ${ae}/${ACTIVE_CAP}</span></h2><div class="hint">Ranked: interviews and calls booked for today or tomorrow, then plans, new intros, then due or stalled moves on Active roles by fit, then replies and decisions. Sync saves changes to Notion.</div></div>${tdBar()}
    <div class="td"><div class="td-main">${first||'<div class="emptybig"><b>Nothing needs you first</b><span>No interview, plan or Active move is due.</span></div>'}${more}</div>
    <div class="td-side">${SPLIT.matches?`<div class="td-card td-pane">${sel?tdPane(sel):'<div class="hint">Pick a row on the left.</div>'}</div>`:""}</div></div>`;}
 
 /* ---------- views ---------- */
-const NAV=[["today","Today",ICON.todo,()=>todayCount()||"",""],["inbox","Inbox",ICON.inbox,c=>c.review+c.border,"Jobs"],["board","Shortlist",ICON.board,()=>JOBS.filter(j=>verdictOf(j)==="pursue"&&!isClosed(j)&&!campaignStage(j)).length,"Jobs"],["active","In Process",ICON.flag,()=>liveJobs().length,"Jobs"],["closed","Closed",ICON.out,()=>closedJobs().length,"Jobs"],["screened","Passed",ICON.out,c=>c.passed,"Jobs"],["startups","Review",ICON.rocket,()=>typeof sCounts==="function"?sCounts().unscreened:0,"Startups"],["watchlist","Watchlist",ICON.eye,()=>typeof sCounts==="function"?sCounts().interesting+sCounts().watch:0,"Startups"],["screened-startups","Passed",ICON.out,()=>typeof STARTUPS!=="undefined"?STARTUPS.filter(s=>svOf(s)==="pass").length:0,"Startups"],["map","Map",ICON.map,()=>mapPool().filter(pinOf).length,"-"]];
+const NAV=[["today","Today",ICON.todo,()=>todayCount()||"",""],["inbox","Inbox",ICON.inbox,c=>c.review+c.border,""],["pipeline","Pipeline",ICON.board,()=>PIPE_LIVE.reduce((n,k)=>n+pipeJobs(k).length,0),""],["people","People",ICON.people,()=>CONTACTS.filter(c=>isIntro(c)||["overdue","today"].includes(netKind(c))).length||"",""],["map","Map",ICON.map,()=>mapPool().filter(pinOf).length,""]];
 /* Phone (2026-09-24, the owner on his iPhone: eleven tabs jammed into the bottom bar): the bar keeps the four PRI tabs and a
    More button; More opens a sheet with the rest. Desktop shows the full rail and never the button. */
-const PRI=["today","inbox","board","active"];
+const PRI=["today","inbox","pipeline","people","map"];
 function nav(route){const c=counts();const rest=NAV.filter(n=>!PRI.includes(n[0]));const cur=rest.find(n=>n[0]===route);
   const head=(g,i,arr)=>g&&(i===0||arr[i-1][4]!==g)?`<div class="navh${g==="-"?" div":""}">${g==="-"?"":g}</div>`:"";
   document.getElementById("nav").innerHTML=NAV.map(([k,l,ic,f,g],i,arr)=>head(g,i,arr)+`<a href="#${k}" class="${route===k?"on":""}${PRI.includes(k)?" pri":""}">${ic}<span>${l}</span><span class="mono n">${f(c)}</span></a>`).join("")
-   +`<button class="morebtn${cur?" on":""}" data-more="1" aria-label="More tabs">${ICON.more}<span>More</span><span class="mono n"></span></button>`;
+   +(rest.length?`<button class="morebtn${cur?" on":""}" data-more="1" aria-label="More tabs">${ICON.more}<span>More</span><span class="mono n"></span></button>`:"");
   document.getElementById("moreSheet").innerHTML=`<div class="ms-h"><b>All tabs</b><button class="quiet" data-more="0">Close</button></div><div class="ms-g">${rest.map(([k,l,ic,f,g],i,arr)=>head(g,i,arr)+`<a href="#${k}" class="${route===k?"on":""}">${ic}<span>${l}</span><span class="mono n">${f(c)}</span></a>`).join("")}</div>`;}
 function moreSheet(open){document.getElementById("moreSheet").hidden=!open;document.getElementById("moreBack").hidden=!open;}
 document.addEventListener("click",e=>{const t=e.target.closest("[data-more]");if(t){moreSheet(t.dataset.more==="1"&&document.getElementById("moreSheet").hidden);return;}
@@ -1545,7 +1613,7 @@ const kv=(n,l,href,cls)=>`<a class="kv1${cls?" "+cls:""}" href="${href}"><span c
 function startupsCard(d){const s=d.sc;const vetted=s.interesting+s.watch+s.pass;const pct=s.all?Math.round(100*vetted/s.all):0;
   return`<div class="sec card"><h4><a href="#startups">Startups</a></h4><div class="kvs">${kv(s.unscreened,"to vet","#startups")}${kv(s.interesting,"interesting","#startups")}${kv(s.watch,"on watch","#startups")}</div><div class="sprog"><div style="width:${pct}%"></div></div><div class="hint">${vetted} of ${s.all} vetted · ${pct}%</div></div>`;}
 function networkCard(d,opt){const names=d.touched.slice(0,5).map(t=>esc(t.c.name)).join(", ");
-  return`<div class="sec card"><h4><a href="#network">Network</a></h4><div class="kvs">${kv(d.over.length,"overdue","#network",d.over.length?"warn":"")}${kv(d.due.length,"due this week","#network")}${kv(d.touched.length,"touched this week","#network")}</div>
+  return`<div class="sec card"><h4><a href="#people">Network</a></h4><div class="kvs">${kv(d.over.length,"overdue","#people",d.over.length?"warn":"")}${kv(d.due.length,"due this week","#people")}${kv(d.touched.length,"touched this week","#people")}</div>
     ${names?`<div class="hint">Touched: ${names}${d.touched.length>5?` and ${d.touched.length-5} more`:""}</div>`:""}
     <div class="hint">${d.warm.length?`<b>${d.warm.length}</b> warm ${d.warm.length===1?"path":"paths"} not used yet: ${d.warm.slice(0,opt&&opt.all?20:3).map(j=>`<a href="#job/${esc(j.id)}">${esc(j.company)}</a>`).join(", ")}${d.warm.length>3&&!(opt&&opt.all)?" and more":""}`:"No unused warm paths on the Shortlist."}</div></div>`;}
 function todoCard(d){const t=d.todo;
@@ -1607,25 +1675,23 @@ function viewDetail(id,opts){opts=opts||{};const j=byId[id];if(!j)return'<div cl
   const posting=j.url?`<a class="post" href="${esc(j.url)}" target="_blank" rel="noopener">Open the posting <span aria-hidden="true">\u2197</span></a>`:"";
   const meta=[posting,esc(j.company),j.location?esc(j.location):"",inlineOk(j.work_model)?esc(j.work_model):"",j.comp?esc(j.comp):"",inlineOk(j.travel)?"travel "+esc(j.travel):"",j.role_type?esc(ROLE_TYPES[j.role_type]||j.role_type):"",gr?`<span style="color:${gr.read==="growing"?"var(--green)":gr.read==="shrinking"?"var(--red)":"var(--amber)"}">Headcount ${esc(gr.read)}</span>`:"",`<span style="color:var(--faint)">first seen ${fmtDate(j.date_first_seen)}</span>`,postingLine(j)].filter(Boolean).join("<span> </span>");
   return`<div class="detail">${opts.pane||opts.embed?"":`<div class="crumb"><a href="${opts.crumb?opts.crumb[0]:"#"+(verdictOf(j)==="pursue"?"board":verdictOf(j)?"screened":"inbox")}">${opts.crumb?esc(opts.crumb[1]):verdictOf(j)==="pursue"?"Shortlist":verdictOf(j)?"Passed jobs":"Inbox"}</a> <i>/</i> ${esc(j.company)}</div>`}
-   <div class="dh"><div class="score"><div class="mono n">${j.score??""}</div><div class="k">${deep(j)?"DEEP":"TITLE"}</div></div>
+   ${opts.brief?`<div class="meta" style="margin:2px 0 14px">${meta}</div>`:`   <div class="dh"><div class="score"><div class="mono n">${j.score??""}</div><div class="k">${deep(j)?"DEEP":"TITLE"}</div></div>
     <div class="hb"><div class="tl"><span class="t" style="cursor:default">${esc(j.title)}</span>${s.flag?ICON.flagOn:""}${statusChip(j)}${postingChip(j)}${verdictOf(j)==="pursue"?hpBadge(j):""}${isNew(j)?'<span class="chip new">New</span>':""}</div><div class="meta">${meta}</div>${noteLines(j)}</div>
-    <div class="st">${s.v?`<span class="chip ${s.v.toLowerCase()}">${esc(s.v)}${s.v==="Pursue"?" · "+stageLabel(stageOf(j)):""}</span>`:'<span class="chip">Not decided yet</span>'}${s.cal?`<span class="hint">Score feels ${esc(s.cal.toLowerCase())}</span>`:""}${campaignStage(j)?`<a href="#active/${esc(j.id)}" class="hint">Open in ${esc(liveName())}</a>`:""}${opts.pane?paneNav(j,opts):""}</div></div>
-   ${callBlock(j,opts)}
+    <div class="st">${s.v?`<span class="chip ${s.v.toLowerCase()}">${esc(s.v)}${s.v==="Pursue"?" · "+stageLabel(stageOf(j)):""}</span>`:'<span class="chip">Not decided yet</span>'}${campaignStage(j)?`<a href="#active/${esc(j.id)}" class="hint">Open in ${esc(liveName())}</a>`:""}${opts.pane?paneNav(j,opts):""}</div></div>`}
+   ${opts.brief?"":callBlock(j,opts)}
    <div class="dbody"><div class="dcol">
     <div class="sec"><h4>What the role is</h4>${(j.bullets||[]).length?(j.bullets||[]).map(b=>`<div class="li"><i>·</i><span>${esc(b)}</span></div>`).join(""):'<span style="color:var(--faint)">Not captured in the deep pass.</span>'}</div>
     <div class="sec"><h4>What they ask for</h4>${quals.length?quals.map(q=>`<div class="li"><i>·</i><span>${esc(q)}</span></div>`).join(""):'<span style="color:var(--muted)">Not captured in the deep pass.'+(j.mismatch?" The mismatch line carries the hard asks.":"")+'</span>'}</div>
     <div class="sec card"><h4>Company</h4>${(c.about||[]).length?`<div>${(c.about||[]).map(esc).join(" ")}</div>`:'<span style="color:var(--faint)">No company read yet.</span>'}${c.growth?`<div class="kv" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border2);font-size:var(--fs-body)"><span>Headcount</span><span><span class="mono">${esc((g.employees||{}).count||"?")}</span> · ${esc((g.headcount_trend||{}).read||"")}${(g.headcount_trend||{}).detail?", "+esc(g.headcount_trend.detail):""}</span><span>Revenue</span><span>${esc((g.revenue||{}).latest||"unknown")}${(g.revenue||{}).growth?" ("+esc(g.revenue.growth)+")":""}</span><span>Local</span><span>${esc((g.local_office||{}).detail||"none known")}</span><span>Confidence</span><span>${esc(g.confidence||"")}</span></div>`:""}${c.url?`<div style="margin-top:6px"><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.url.replace(/^https?:\/\//,""))}</a></div>`:""}</div>
-    ${verdictOf(j)==="pursue"||hpOf(j)?`<div class="sec card"><h4>Human path</h4>${hpDetail(j)}</div>`:""}
-    <div class="sec card"><h4>Who I know</h4>${whoHtml(p)}${contactsOf(j).length?`<div class="netblock"><h4 style="margin-top:10px">Networking</h4>${contactsOf(j).map(netMini).join("")}</div>`:""}</div>
-    ${connCard(j)}
+    ${!opts.brief&&(verdictOf(j)==="pursue"||hpOf(j))?`<div class="sec card"><h4>Human path</h4>${hpDetail(j)}</div>`:""}
+    ${opts.brief?"":`    <div class="sec card"><h4>Who I know</h4>${whoHtml(p)}${contactsOf(j).length?`<div class="netblock"><h4 style="margin-top:10px">Networking</h4>${contactsOf(j).map(netMini).join("")}</div>`:""}</div>
+    ${connCard(j)}`}
    </div><div class="dcol">
     ${officeCard(j)}
     <div class="sec"><h4>Why it scored ${esc(j.score)}${j.rubric_version?` <span class="mono" style="color:var(--faint);font-weight:400">rubric ${esc(j.rubric_version)}</span>`:""}</h4>${j.math?`<div class="mono card" style="font-size:var(--fs-sm);padding:8px 10px">${esc(j.math)}</div>`:""}${(j.siblings||[]).length?`<div class="why mis" style="margin-top:4px"><i></i><span>Also at ${esc(j.company)}, already decided: ${j.siblings.map(s=>`<a href="#job/${s.id}">${esc(s.title)}</a> (${esc(s.what)})`).join("; ")}</span></div>`:""}${j.why?`<div class="why"><i></i><span>${esc(j.why)}</span></div>`:""}${j.mismatch?`<div class="why mis"><i></i><span>${esc(j.mismatch)}</span></div>`:""}</div>
-    <div class="sec"><h4>AI fit</h4><span style="color:var(--faint)">Not yet assessed. Lands with the profile-gaps work.</span></div>
     ${j.doc?`<div class="sec card"><h4>Process log and notes</h4><div class="doc">${j.doc}</div></div>`:""}
-    <div class="sec card dash"><h4>Outreach plan</h4>Phase 3. Drafted in a session once the path is confirmed.</div>
    </div></div>
-   ${orgCard(j)}
+   ${opts.brief?"":orgCard(j)}
    </div>`;}
 /* Org chart (engine/org_chart.py, board_meta org_charts keyed by company_key): the company's own team page in
    seniority tiers, top to bottom, grouped by department, each name linking to its bio. People the vault or the
@@ -1922,17 +1988,134 @@ function viewClosed(id){const L=closedJobs(),E=L.filter(j=>closedOutcome(j)!=="p
     <div class="sh" style="margin-top:18px"><h2>Gone, awaiting your confirm <span>${G.length}</span></h2><div class="hint">Shortlist roles whose ad is down. Confirm the removal to close the role under Posting gone, or leave it if you still want the company. Roles off the shortlist close on their own.</div></div>
     ${G.length?`<div class="card" style="padding:0;overflow:hidden">${G.map(j=>postingRow(j,true)).join("")}</div>`:'<div class="empty">Every shortlist posting checked is still up.</div>'}
     ${U.length?`<div class="sh" style="margin-top:18px"><h2>Needs a look <span>${U.length}</span></h2><div class="hint">The page gave mixed signals, so nobody called it. Open the posting and decide.</div></div><div class="card" style="padding:0;overflow:hidden">${U.map(j=>postingRow(j,false)).join("")}</div>`:""}`;}
-function route(){const h=(location.hash||"#today").slice(1);const [r,arg]=h.split("/");return{r:!r?"today":r==="borderline"?"inbox":r==="screened"&&arg==="businesses"?"screened-startups":r,arg};}
+/* ---------- Pipeline (board v3, the owner 2026-10-21) ----------
+   One screen for every opportunity, by stage, replacing Shortlist, In Process, Closed and Passed ("organize it by what
+   stage it's in ... you could get a progress bar as you move through"). Brief: Personal-OS
+   Projects/job-search/hq/board-v3-brief.md. Board stages map onto the Notion Stage values; Shortlist folds into
+   Research. Each opportunity's bar shows the steps inside its stage, done only when the evidence is on the record
+   (an asset, a log row, the plan in campaign.md, a checked human path), never because an agent said so. */
+const PIPE=[["research","Research"],["outreach","Outreach"],["application","Application"],["inprocess","In process"],["negotiation","Negotiation"],["closed","Closed"],["past","Past"]];
+const PIPE_LIVE=["research","outreach","application","inprocess","negotiation"];
+const PIPE_HINT={research:"Pursued. Diligence, warm paths and a strategy, then your call.",outreach:"Contacting people: hiring manager, warm intro, recruiter.",application:"Applied through a portal or a recruiter.",inprocess:"They are interested and meetings are set.",negotiation:"An offer to work through.",closed:"Pursued and ended.",past:"Never pursued: passed or parked in the Inbox."};
+const pipeName=k=>(PIPE.find(p=>p[0]===k)||[k,k])[1];
+const pipeStage=j=>{const v=verdictOf(j);if(v!=="pursue")return v==="pass"||v==="maybe"?"past":"";const s=stageOf(j);
+  return s==="closed"?"closed":s==="outreach"?"outreach":s==="applied"?"application":s==="interviewing"?"inprocess":s==="offer"?"negotiation":"research";};
+const pipeJobs=k=>JOBS.filter(j=>pipeStage(j)===k);
+let PIPE_ST="";try{PIPE_ST=localStorage.getItem("board.pipeStage")||"";}catch(e){}
+let OPP_TAB="strategy";try{OPP_TAB=localStorage.getItem("board.oppTab")||"strategy";}catch(e){}
+const hasAsset=(j,g,re)=>(j.assets||[]).some(a=>a.group===g&&(!re||re.test(a.label||"")));
+const logOf=(j,re)=>(j.log||[]).filter(r=>re.test(r.type||""));
+const firstDate=rows=>rows.map(r=>r.date||"").filter(Boolean).sort()[0]||"";
+const lastDate=rows=>rows.map(r=>r.date||"").filter(Boolean).sort().pop()||"";
+/* A reply: anything from their side (an email, call, meeting) dated on or after the first thing sent. */
+function replied(j){const s=firstDate(logOf(j,/^sent$/i))||j.stage_date||"";return(j.log||[]).some(r=>!/^(sent|draft|check)$/i.test(r.type||"")&&(r.date||"")>=s);}
+const talked=j=>{const s=j.stage_date||"";return(j.log||[]).some(r=>/^(call|meeting|interview|invite)$/i.test(r.type||"")&&(r.date||"")>=s);};
+function pipeSteps(j){const ps=pipeStage(j),p=j.plan,h=j.human_path||{};
+  const answered=!!p&&((p.input||[]).length>0||!!PLANIN[j.id+"|"+p.version]||(p.status&&p.status!=="proposed"));
+  if(ps==="research")return[["Diligence",hasAsset(j,"Research"),"claude"],["Warm paths",!!h.verdict&&h.verdict!=="unchecked","claude"],
+    ["Strategy",!!p,"claude"],["Your call",answered,"owner"],["Drafts",hasAsset(j,"Application"),"claude"],["Send",logOf(j,/^sent$/i).length>0,"owner"]];
+  if(ps==="outreach")return[["Sent",true,"owner"],["Reply",replied(j),"them"],["Conversation",talked(j),"owner"]];
+  if(ps==="application")return[["Submitted",true,"owner"],["Response",replied(j),"them"],["Conversation",talked(j),"owner"]];
+  if(ps==="inprocess"){const met=lastDate(logOf(j,/^(meeting|interview)$/i).concat(j.meetings_vault||[]));const c=j.campaign||{};
+    const ahead=!!isoIn((c.next||{}).when)&&isoIn((c.next||{}).when)>=todayIso();
+    return[["Scheduled",ahead||!!met,"them"],["Prep",hasAsset(j,"Prep"),"claude"],["Mock",hasAsset(j,"Prep",/mock|drill/i),"owner"],
+      ["Meeting",!!met&&!ahead,"owner"],["Debrief",!!met&&!ahead&&(j.meetings_vault||[]).some(m=>m.date>=met),"owner"],["Thank-yous",!!met&&!ahead&&logOf(j,/^sent$/i).some(r=>r.date>=met),"owner"]];}
+  if(ps==="negotiation")return[["Offer details",true,"them"],["Your priorities",false,"owner"],["Response",false,"owner"]];
+  return[];}
+const WHO={owner:"You",claude:"Claude",them:"Them"};
+function pipeOwner(j){const b=(OPPS[j.id]||{}).ball;if(b)return b;const g=ballOf(j);return g?(g.side==="you"?"owner":"them"):"";}
+function pipeBar(j,big){const S=pipeSteps(j);if(!S.length)return"";const cur=S.findIndex(s=>!s[1]);const done=S.filter(s=>s[1]).length;
+  const segs=S.map(([l,ok,who],i)=>`<i class="${ok?"ok":i===cur?"cur "+who:""}" title="${esc(l)}${ok?": done":i===cur?": next, "+WHO[who]:""}"></i>`).join("");
+  const lab=cur<0?"All steps done":`<b>${esc(S[cur][0])}</b> · ${WHO[S[cur][2]]==="You"?"with you":WHO[S[cur][2]]==="Claude"?"Claude is on it":"waiting on them"}`;
+  if(!big)return`<div class="pp-bar">${segs}</div><div class="pp-lab"><span class="mono">${done}/${S.length}</span> ${lab}</div>`;
+  return`<div class="pp-steps">${S.map(([l,ok,who],i)=>`<div class="pp-st${ok?" ok":i===cur?" cur "+who:""}"><i>${ok?"&#10003;":i+1}</i><span>${esc(l)}</span>${i===cur?`<em>${esc(WHO[who])}</em>`:""}</div>`).join("")}</div>`;}
+function pipeNext(j){const s=fb(j.id);const who=pipeOwner(j);
+  return`<div class="pp-next"><div class="pp-nh">${who?`<span class="pp-who ${who}">${WHO[who]}</span>`:""}${s.nextDate?`<span class="mono${overdue(s.nextDate)?" pp-late":""}">${esc(shortDate(s.nextDate))}</span>`:""}</div><div class="pp-nt">${esc(s.next||"No next step yet")}</div></div>`;}
+function pipeCard(j,compact){const a=ageOf(j);const lane=laneOf(j.id);
+  return`<a class="pp-card${compact?" sm":""}" href="#pipeline/${esc(j.id)}"><div class="pp-top"><span class="pp-co">${esc(j.company)}</span><span class="mono pp-sc">${j.score??""}</span></div>
+    <div class="pp-t">${esc(j.title)}</div>${pipeBar(j)}${pipeNext(j)}
+    ${compact?"":`<div class="pp-meta">${pipeStage(j)==="research"&&lane?`<span class="chip">${lane==="active"?"Active":lane==="bench"?"Bench":esc(cap(lane))}</span>`:""}<span class="hint"><span class="mono">${a.stageDays}d</span> in ${esc(pipeName(pipeStage(j)))}</span>${postingChip(j)}</div>`}</a>`;}
+/* the owner's move first, then the furthest along, then fit. */
+const pipeSort=(a,b)=>((pipeOwner(b)==="owner")-(pipeOwner(a)==="owner"))||(pipeSteps(b).filter(s=>s[1]).length-pipeSteps(a).filter(s=>s[1]).length)||((b.score||0)-(a.score||0));
+function pipeStrip(cur){return`<div class="pp-strip">${PIPE.map(([k,l])=>{const n=pipeJobs(k).length;const live=PIPE_LIVE.includes(k);
+  return`<a href="#pipeline/${k}" class="pp-sg${cur===k?" on":""}${live?"":" end"}"><b>${esc(l)}</b><span class="mono">${n}</span></a>`;}).join("")}</div>`;}
+function pipeList(k){const L=pipeJobs(k).sort(pipeSort);
+  if(k==="research"){const A=L.filter(j=>laneOf(j.id)!=="bench"),B=L.filter(j=>laneOf(j.id)==="bench");
+    return`<div class="pp-grid">${A.map(j=>pipeCard(j)).join("")||'<div class="empty">Nothing Active. Promote a Bench role.</div>'}</div>
+      ${B.length?`<details class="pp-bench"><summary>Bench <span class="mono">${B.length}</span> <span class="hint">Quick research only until a slot opens</span></summary><div class="pp-grid">${B.map(j=>pipeCard(j)).join("")}</div></details>`:""}`;}
+  if(k==="closed"||k==="past"){const R=k==="past"?L.sort((a,b)=>String(fb(b.id).vts||"").localeCompare(String(fb(a.id).vts||""))):L;
+    return R.length?`<div class="card" style="padding:0;overflow:hidden">${R.map(j=>{const o=k==="closed"?closedOutcome(j):verdictOf(j)==="maybe"?"parked":"passed";
+      return`<a class="lr" href="#${k==="closed"?"pipeline":"job"}/${esc(j.id)}" style="text-decoration:none;color:inherit"><div class="n mono">${j.score??""}</div><div class="b"><div class="t">${esc(j.title)}</div><div class="m">${esc(j.company)}</div><div class="c"><span class="chip pass">${esc(o?(k==="closed"?outcomeLabel(o):cap(o)):"Closed")}</span>${fb(j.id).note?`<span class="hint">${esc(fb(j.id).note)}</span>`:""}</div></div></a>`;}).join("")}</div>`:'<div class="empty">None.</div>';}
+  return L.length?`<div class="pp-grid">${L.map(j=>pipeCard(j)).join("")}</div>`:`<div class="empty">Nothing in ${esc(pipeName(k))}.</div>`;}
+function viewPipeline(arg){
+  if(arg&&byId[arg])return oppPage(byId[arg]);
+  const k=PIPE.some(p=>p[0]===arg)?arg:"";
+  if(k){PIPE_ST=k;try{localStorage.setItem("board.pipeStage",k);}catch(e){}}
+  const head=`<div class="sh"><h2>Pipeline <span>${PIPE_LIVE.reduce((n,s)=>n+pipeJobs(s).length,0)} live</span></h2><div class="hint">${k?esc(PIPE_HINT[k]):"Every live opportunity by stage. Open a stage for the full list."}</div></div>${pipeStrip(k)}`;
+  if(k)return head+pipeList(k);
+  /* All: a column per live stage; Research shows Active only, Bench is a count. */
+  return head+`<div class="pp-cols">${PIPE_LIVE.map(s=>{const L=pipeJobs(s).sort(pipeSort);const show=s==="research"?L.filter(j=>laneOf(j.id)!=="bench"):L;const bench=L.length-show.length;
+    return`<div class="pp-col"><a class="pp-ch" href="#pipeline/${s}"><b>${esc(pipeName(s))}</b><span class="mono">${L.length}</span></a>${show.map(j=>pipeCard(j,true)).join("")||'<div class="pp-none">None</div>'}${bench?`<a class="pp-more" href="#pipeline/research">+ ${bench} on the Bench</a>`:""}</div>`;}).join("")}</div>`;}
+/* The opportunity page: one home per opportunity. */
+const OPP_TABS=[["strategy","Strategy"],["brief","Brief"],["people","People"],["timeline","Timeline"],["materials","Materials"]];
+function planView(j){const p=j.plan;
+  if(!p&&j.campaign&&pipeStage(j)!=="research")return"";
+  if(!p){const S=pipeSteps(j);const owed=S.slice(0,2).filter(s=>!s[1]).map(s=>s[0].toLowerCase());
+    return`<div class="sec card dash"><h4>Strategy</h4>${pipeStage(j)==="research"?`Claude writes the recommended approach after ${owed.length?esc(owed.join(" and "))+" (still owed)":"the research"}. Then it comes to you as one card.`:"No written plan for this opportunity."}</div>`;}
+  if(planOpen(j))return planCard(j);
+  const row=(l,v)=>v?`<div class="cp-kv"><span>${l}</span>${esc(v)}</div>`:"";
+  return`<div class="sec card"><h4>Strategy <span class="hint">v${p.version}${p.date?" · "+esc(fmtDate(p.date)):""}</span></h4>${row("Route",p.route)}${row("Why",p.why)}${row("People",p.people)}${row("Materials",p.materials)}${row("Decision",p.decision)}
+    ${(p.input||[]).length?`<div class="cp-sub">Your input</div>${cpList(p.input)}`:""}</div>`;}
+function oppPage(j){const k=pipeStage(j);const T=OPP_TABS;const tab=T.some(t=>t[0]===OPP_TAB)?OPP_TAB:"strategy";const lane=laneOf(j.id);
+  const prep=(j.assets||[]).filter(a=>["Prep","Campaign","Roadmap","Pages"].includes(a.group));
+  const body=tab==="brief"?viewDetail(j.id,{embed:true,brief:true})
+    :tab==="people"?`<div class="sec card"><h4>Warm paths</h4>${hpOf(j)?hpDetail(j):'<div class="hint">Not checked yet. Claude checks the network after diligence.</div>'}</div>${j.campaign&&(j.campaign.people||[]).length?`<div class="sec card"><h4>Next conversation</h4>${peopleAcross(j)}</div>`:""}<div class="lv-org0">${orgBlock(j,true)}</div>`
+    :tab==="timeline"?`<div class="sec card">${timelineHtml(j)}</div>`
+    :tab==="materials"?`<div class="sec card">${assetShelf(j,{cols:true})}</div>${prep.length?"":""}`
+    :`${planView(j)}${j.campaign?`<div class="cp-2 wr-ov"><div class="wr-col">${heroCard(j,true)}${learnedCard(j)}</div><div class="wr-col">${convCard(j)}</div></div>`:""}`;
+  return`<div class="lv"><div class="crumb0"><a href="#pipeline">Pipeline</a> <i>/</i> <a href="#pipeline/${k}">${esc(pipeName(k))}</a> <i>/</i> ${esc(j.company)}</div>
+    <div class="op-head"><div><div class="lv-t">${esc(j.title)}</div><div class="meta">${esc(j.company)}${j.location?" · "+esc(j.location):""} · score <span class="mono">${j.score??""}</span></div></div>
+      <div class="op-chips"><span class="chip pursue">${esc(pipeName(k))}</span>${k==="research"&&lane?`<span class="chip">${lane==="bench"?"Bench":"Active"}</span>`:""}${postingChip(j)}${j.url?`<a class="hint" href="${esc(j.url)}" target="_blank" rel="noopener">Posting</a>`:""}</div></div>
+    ${pipeBar(j,true)}${tdBar()}${(()=>{const ti=todoItems().find(x=>x.key==="role:"+j.id);/* the role's next step and quick moves, the same staged edits as Today; Sync sends them */return ti?`<div class="op-now card">${tdPane(ti).replace(/<a class="chip pursue" href="#job\/[^"]*">Open the role<\/a>/,"")}</div>`:`<div class="op-now card">${pipeNext(j)}</div>`;})()}
+    <div class="wr"><div class="wr-tabs">${T.map(([t,l])=>`<button class="pill${tab===t?" on":""}" data-otab="${t}">${l}</button>`).join("")}</div>${body}</div></div>`;}
+/* ---------- People (board v3, the owner 2026-10-21) ----------
+   Networking conversations with no posting attached need a home (an email from a friend introducing a former colleague is often the best lead there is). The Notion Network database, grouped by where
+   each relationship stands; the person pane and every write are the Network tab's (network-write saves to Notion).
+   An intro is a contact whose How Connected is Warm intro with no call or meeting logged yet: the nightly mail step
+   adds those from "connecting you with" emails. Suggesting who to talk to is the agent's job (/debrief, Monday /pm). */
+const talkedLive=c=>(c.touches||[]).some(t=>/^(call|meeting|event)$/i.test(t.type||""));
+const isIntro=c=>c.how==="Warm intro"&&c.status!=="Dormant"&&!talkedLive(c);
+const isBooked=c=>/^(call|meeting|event)$/i.test(c.next_type||"")&&!!c.next_date&&c.next_date>=todayIso();
+const PEOPLE_GROUPS=[["intro","Intros to act on","Someone connected you: reply and book a time"],["booked","Conversations booked","Calls and meetings on the calendar"],
+  ["due","Follow-ups due","Overdue, today and the next 7 days"],["recent","Recently talked","The last 30 days"],["revive","Worth reviving","Warm, but no touch in 60 days or more"]];
+function peopleGroups(){const all=CONTACTS.slice().sort(netUrgent);const used=new Set();const G={};
+  const take=(k,f)=>{G[k]=all.filter(c=>!used.has(c.id)&&f(c));G[k].forEach(c=>used.add(c.id));};
+  take("intro",isIntro);take("booked",isBooked);take("due",c=>["overdue","today","week"].includes(netKind(c)));
+  take("recent",c=>!!c.last_date&&daysAgo(c.last_date)<=30);
+  take("revive",c=>c.status!=="Not contacted"&&c.status!=="Working together"&&(!c.last_date||daysAgo(c.last_date)>60));
+  G.rest=all.filter(c=>!used.has(c.id));return G;}
+function personCard(c,on){const last=c.last_date?`${esc(c.last_type||"Touch")} ${esc(shortDate(c.last_date))}${c.last_note?": "+esc(c.last_note):""}`:"";
+  return`<div class="nw-card pe-card k-${netKind(c)}${on?" on":""}" data-nsel="${esc(c.id)}"><div class="nw-r1"><b>${esc(c.name||"(no name)")}</b>${netDue(c)}</div>
+    ${c.role||c.company?`<div class="nw-co">${esc([c.role,c.company].filter(Boolean).join(" · "))}</div>`:""}${c.hook?`<div class="nw-hook">${esc(c.hook)}</div>`:""}
+    <div class="nw-act">${c.next_type&&!new RegExp("^"+c.next_type+"\\b","i").test(c.next_action||"")?`<b>${esc(c.next_type)}:</b> `:""}${esc(c.next_action||"No next step yet")}</div>${last?`<div class="pe-last">Last: ${last}</div>`:""}</div>`;}
+function viewPeople(arg){const G=peopleGroups();const all=CONTACTS;
+  const pick=all.find(c=>c.id===arg)||(SPLIT.matches?PEOPLE_GROUPS.map(g=>G[g[0]][0]).find(Boolean)||null:null);
+  const sec=([k,l,h])=>G[k].length?`<div class="nw-sh">${esc(l)} <span>${G[k].length} · ${esc(h)}</span></div><div class="pe-grid">${G[k].map(c=>personCard(c,pick&&c.id===pick.id)).join("")}</div>`:"";
+  const body=all.length?PEOPLE_GROUPS.map(sec).join("")+(G.rest.length?`<details class="pp-bench"><summary>Everyone else <span class="mono">${G.rest.length}</span> <span class="hint">No date, later, or not yet contacted</span></summary><div class="pe-grid">${G.rest.map(c=>personCard(c,pick&&c.id===pick.id)).join("")}</div></details>`:"")
+    :'<div class="emptybig"><b>No contacts on the board yet</b><span>They come from the Notion Network database on the next refresh, or say "sync board".</span></div>';
+  return`<div class="nw${arg&&pick?" has-sel":""}"><div class="nw-main"><div class="sh"><h2>People <span>${all.length} · ${G.intro.length} intros · ${G.booked.length} booked · ${G.due.length} due</span></h2><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="hint">Notion is the home; edits here save there</span><button data-addperson="1">${addOpen?"Close":"Add person"}</button></div></div>
+    ${netForm()}${body}</div>${pick?`<aside class="nw-pane">${netPane(pick)}</aside>`:""}</div>`;}
+function route(){const h=(location.hash||"#today").slice(1);const [r,arg]=h.split("/");if(r==="network")return{r:"people",arg};if(r==="board"||r==="active"||r==="closed")return{r:"pipeline",arg:arg||(r==="board"?"research":r==="closed"?"closed":"inprocess")};if(r==="job"&&arg&&byId[arg]&&verdictOf(byId[arg])==="pursue")return{r:"pipeline",arg};return{r:!r?"today":r==="borderline"?"inbox":r==="screened"&&arg==="businesses"?"screened-startups":r,arg};}
 const SPLIT=window.matchMedia("(min-width:901px)");SPLIT.addEventListener("change",()=>paint());
 const splitMode=(r,arg)=>(r==="inbox"||(r==="startups"&&arg!=="map"))&&SPLIT.matches;
 function paint(){if(!loaded)return;const {r,arg}=route();const view=document.getElementById("view");const split=splitMode(r,arg);
-  banner();tiles();breakdowns();nav(r==="job"?(byId[arg]&&verdictOf(byId[arg])==="pursue"?"board":byId[arg]&&verdictOf(byId[arg])==="pass"?"screened":"inbox"):r);
+  banner();tiles();breakdowns();nav(r==="job"?(byId[arg]&&verdictOf(byId[arg])==="pursue"?"pipeline":byId[arg]&&verdictOf(byId[arg])==="pass"?"screened":"inbox"):r);
   const chrome=false; /* the stat tiles and charts live on the Overview page now */["tiles","breaks","strip"].forEach(id=>{document.getElementById(id).style.display=chrome?"":"none";});
   const inTab=arg&&((r==="screened"&&arg!=="businesses")||r==="screened-startups"||r==="watchlist"); /* a profile opened inside its tab */
-  view.className=r==="job"||r==="active"||(r==="closed"&&arg)||inTab?"":(r==="map"||(r==="startups"&&arg==="map"))?"mapsection":split?"splitview":"section";
+  view.className=r==="job"||r==="active"||(r==="pipeline"&&arg&&byId[arg])||(r==="closed"&&arg)||inTab?"":(r==="map"||(r==="startups"&&arg==="map"))?"mapsection":split?"splitview":"section";
   const lc=view.querySelector(".lcol");const ls=lc?lc.scrollTop:0;
   unmountMaps();
-  view.innerHTML=r==="board"?viewBoard(arg):r==="map"?viewMap():r==="network"?viewNetwork(arg):r==="todos"?viewTodos(arg):r==="today"?viewToday(arg):r==="startups"?viewStartups(arg):r==="watchlist"?viewWatchlist(arg):r==="screened"?viewScreened(arg):r==="screened-startups"?viewScreened("businesses",arg):r==="job"?viewDetail(arg):r==="active"?viewActive(arg):r==="closed"?viewClosed(arg):r==="overview"?viewOverview():split?viewSplit(r,arg):viewInbox();
+  view.innerHTML=r==="pipeline"?viewPipeline(arg):r==="people"?viewPeople(arg):r==="board"?viewBoard(arg):r==="map"?viewMap():r==="network"?viewNetwork(arg):r==="todos"?viewTodos(arg):r==="today"?viewToday(arg):r==="startups"?viewStartups(arg):r==="watchlist"?viewWatchlist(arg):r==="screened"?viewScreened(arg):r==="screened-startups"?viewScreened("businesses",arg):r==="job"?viewDetail(arg):r==="active"?viewActive(arg):r==="closed"?viewClosed(arg):r==="overview"?viewOverview():split?viewSplit(r,arg):viewInbox();
   mountMaps();
   const lc2=view.querySelector(".lcol");if(lc2)lc2.scrollTop=ls;
   view.querySelectorAll("textarea").forEach(autoGrow);}
@@ -1940,7 +2123,7 @@ let renderT=null;function render(){clearTimeout(renderT);renderT=setTimeout(()=>
 let pending=false;
 /* Picking another person in the Network split keeps the list where it was; every other route starts at the top. */
 let lastR=route().r;
-window.addEventListener("hashchange",()=>{const r=route().r;if(!((r==="network"||r==="todos"||r==="today"||r==="startups")&&lastR===r&&SPLIT.matches))window.scrollTo(0,0);lastR=r;paint();});
+window.addEventListener("hashchange",()=>{const r=route().r;if(!((r==="network"||r==="people"||r==="todos"||r==="today"||r==="startups")&&lastR===r&&SPLIT.matches))window.scrollTo(0,0);lastR=r;paint();});
 function autoGrow(t){t.style.height="auto";t.style.height=Math.max(34,t.scrollHeight)+"px";}
 
 /* ---------- interactions ---------- */
@@ -1958,7 +2141,7 @@ async function submitCard(id,advance){const d=draft[id];
   EDIT.delete(id);
   if(d.v==="Pursue")await promoteOpp(id);else await closeOpp(id);
   delete draft[id];
-  toast(d.v==="Pursue"?"Pursue. On the Board.":d.v==="Maybe"?"Maybe. Parked on the Board.":"Pass. In Passed jobs.");
+  toast(d.v==="Pursue"?"Pursue. In Pipeline, Research.":"Pass. In Pipeline, Past.");
   if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
   if(advance&&split){if(nextId){location.hash="#"+r+"/"+nextId;setTimeout(()=>{const n=view.querySelector("textarea[data-note]");if(n)n.focus();},120);}else{render();toast("End of the list");}return;}
   render();
@@ -1972,10 +2155,11 @@ view.addEventListener("click",async e=>{const t=e.target.closest("[data-edit],[d
   if(!await writeVerdict(id,{v:""}))return;if(OPPS[id])await closeOpp(id);EDIT.delete(id);delete draft[id];
   toast(isInbox(byId[id])?"Back in the Inbox; your note is kept":"Verdict cleared. It scores under the inbox floor, so it will not show in the Inbox");render();});
 view.addEventListener("click",async e=>{const d=e.target.closest('a[href="#decide"]');if(d){e.preventDefault();const el=document.getElementById("decide");if(el)el.scrollIntoView({behavior:"smooth",block:"start"});return;}
-  const t=e.target.closest("[data-v],[data-quickv],[data-cal],[data-flag],[data-x],[data-open],[data-acc],[data-submit],[data-sel],[data-mapf],[data-pin],[data-mapzoom],[data-netlens],[data-addperson],[data-cdone],[data-snooze],[data-cdonego],[data-nsel],[data-link],[data-unlink],[data-tsel],[data-tdone],[data-tsnooze],[data-tfold],[data-tundo],[data-tsync],[data-tdiscard],[data-tmove],[data-tkeep],[data-tslotquiet],[data-plan],[data-wtab],[data-samples],[data-scrf],[data-confirmrm]");if(!t)return;
+  const t=e.target.closest("[data-v],[data-quickv],[data-cal],[data-flag],[data-x],[data-open],[data-acc],[data-submit],[data-sel],[data-mapf],[data-pin],[data-mapzoom],[data-netlens],[data-addperson],[data-cdone],[data-snooze],[data-cdonego],[data-nsel],[data-link],[data-unlink],[data-tsel],[data-tdone],[data-tsnooze],[data-tfold],[data-tundo],[data-tsync],[data-tdiscard],[data-tmove],[data-tkeep],[data-tslotquiet],[data-plan],[data-wtab],[data-otab],[data-samples],[data-scrf],[data-confirmrm]");if(!t)return;
   if(t.matches("[data-confirmrm]")){e.preventDefault();e.stopPropagation();t.disabled=true;await confirmRemoval(t.dataset.confirmrm);return;}
   if(t.dataset.samples){setSamples(!SAMPLES_ON);paint();return;}
   if(t.dataset.scrf){SCR_F=t.dataset.scrf;paint();return;}
+  if(t.dataset.otab){OPP_TAB=t.dataset.otab;try{localStorage.setItem("board.oppTab",OPP_TAB);}catch(x){}paint();return;}
   if(t.dataset.wtab){WR_TAB=t.dataset.wtab;try{localStorage.setItem("board.inplayTab",WR_TAB);}catch(x){}paint();return;}
   if(t.dataset.tfold){const k=t.dataset.tfold;if(tdFold.has(k))tdFold.delete(k);else tdFold.add(k);paint();return;}
   if(t.dataset.tdone){todoDone(t.dataset.tdone);return;}
@@ -1994,8 +2178,8 @@ view.addEventListener("click",async e=>{const d=e.target.closest('a[href="#decid
   if(t.dataset.snooze){const c=CONTACTS.find(x=>x.id===t.dataset.snooze);if(!c)return;
     const base=c.next_date&&c.next_date>todayIso()?c.next_date:todayIso();const d=addDays(base,+t.dataset.days);t.disabled=true;
     if(await netWrite({action:"update",id:c.id,fields:{next_date:d}})){toast(`Snoozed ${c.name||"them"} to ${fmtDate(d)}`);render();}else t.disabled=false;return;}
-  if(t.dataset.cdonego){doneOpen=t.dataset.cdonego;const h="#network/"+t.dataset.cdonego;if(location.hash!==h)location.hash=h;else paint();return;}
-  if(t.dataset.nsel){const h="#network/"+t.dataset.nsel;if(location.hash!==h)location.hash=h;return;}
+  if(t.dataset.cdonego){doneOpen=t.dataset.cdonego;const h="#people/"+t.dataset.cdonego;if(location.hash!==h)location.hash=h;else paint();return;}
+  if(t.dataset.nsel){const h="#people/"+t.dataset.nsel;if(location.hash!==h)location.hash=h;return;}
   if(t.dataset.netlens){netLens=t.dataset.netlens;try{localStorage.setItem(NETLENS_KEY,netLens);}catch(e){}paint();return;}
   if(t.dataset.cdone){doneOpen=doneOpen===t.dataset.cdone?null:t.dataset.cdone;paint();return;}
   if(t.dataset.addperson){addOpen=!addOpen;paint();if(addOpen){const n=view.querySelector('#addPerson input[name="name"]');if(n)n.focus();}return;}

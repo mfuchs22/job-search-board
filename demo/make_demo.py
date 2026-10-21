@@ -1,8 +1,7 @@
 """Build the demo dataset the public board runs on: web/demo/data.json.
 
 Everything in it is invented. The companies, people, postings, notes and meetings are fictional and were written
-to exercise every tab of the page (Overview, Inbox, Shortlist, In Process, Closed, Passed, Startups, Watchlist,
-Network, To-dos, Map) with the same shapes the engine pushes to Supabase (docs/schema.md). Dates are written
+to exercise every tab of the page (Today, Inbox, Pipeline, People, Map) with the same shapes the engine pushes to Supabase (docs/schema.md). Dates are written
 relative to GENERATED; web/demo.js shifts them to the day the page is opened, so the demo never goes stale.
 
     py demo/make_demo.py            writes web/demo/data.json
@@ -877,7 +876,80 @@ DATA = {
     },
 }
 
+# the public copy of the page names the owner's ball value "owner" (tools/publish_public.py in the private repo)
+OWNER = "owner"
+
+
+def board_v3(data):
+    """Board v3 (2026-10-21): Lane and Ball on every opportunity, Research roles at different points in their steps
+    (diligence, warm paths, a written plan, the owner's answer, drafts), a few fresh Pursues so Research has a realistic
+    pile, and one introduction that just arrived, for the People tab."""
+    T = data["tables"]
+    jobs = {r["id"]: r["payload"] for r in T["jobs"]}
+    opps = {r["id"]: r for r in T["opportunities"]}
+    verd = {r["id"]: r for r in T["verdicts"]}
+    gen = data["generated"]
+    fresh = [j for j in jobs.values() if j["id"] not in verd and not j.get("excluded")][:6]
+    for j in fresh:
+        verd[j["id"]] = {"id": j["id"], "v": "Pursue", "cal": None, "note": "", "flag": False, "ts": gen + "T09:00:00.000Z",
+                         "title": j["title"], "company": j["company"], "pkeep": None}
+        opps[j["id"]] = {"id": j["id"], "page_id": "page-" + j["id"], "updated_at": gen + "T09:00:00.000Z",
+                         "payload": {"id": j["id"], "page": "page-" + j["id"], "url": "#", "flag": False, "stage": "researching",
+                                     "outcome": None, "next": "", "next_date": None, "company": None, "company_name": j["company"],
+                                     "people": [], "meetings": [], "tasks": [], "hp": "unchecked", "hp_people": "",
+                                     "edited": gen + "T09:00:00.000Z"}}
+    research = []
+    for o in opps.values():
+        p = o["payload"]
+        if p["stage"] == "shortlist":
+            p["stage"] = "researching"
+        if p["stage"] == "researching":
+            research.append(p)
+        p["ball"] = {"interviewing": OWNER, "applied": "them", "outreach": "them", "offer": OWNER}.get(p["stage"], "claude")
+    research.sort(key=lambda p: -(jobs[p["id"]].get("score") or 0))
+    for i, p in enumerate(research):
+        j = jobs[p["id"]]
+        p["lane"], p["lane_since"] = ("active" if i < 6 else "bench"), "2026-10-01"
+        step = [5, 4, 3, 2, 1, 0][i] if i < 6 else (1 if i % 2 else 0)
+        j["assets"] = [a for a in j.get("assets", []) if a.get("group") != "Research"]
+        if step >= 1:
+            j["assets"].append({"url": "#", "date": d(3), "kind": "doc", "path": "research/brief.md", "group": "Research", "label": f"{j['company']}: diligence brief"})
+        hp = j.get("human_path") or {}
+        if step >= 2:
+            hp.update({"verdict": hp.get("verdict") if hp.get("verdict") not in (None, "unchecked") else "warm reachable", "checked": d(2),
+                       "people": hp.get("people") or "Jordan Lee, first-degree since 2019, runs partnerships there"})
+        else:
+            hp = {"verdict": "unchecked", "checked": None, "people": ""}
+        j["human_path"], p["hp"] = hp, hp["verdict"]
+        j.pop("plan", None)
+        p["next"] = "Claude: " + ("diligence" if step < 1 else "warm paths" if step < 2 else "strategy") + " tonight"
+        if step >= 3:
+            j["plan"] = {"version": 1, "date": d(1), "route": "warm intro (Jordan Lee), then apply the same week",
+                         "why": "A first-degree contact sits two levels from the hiring manager; the posting is two weeks old, so the application should follow the note within days.",
+                         "people": "Jordan Lee (first-degree since 2019, partnerships lead)", "materials": "a short note to Jordan; a tailored resume and cover note",
+                         "decision": "Comfortable asking Jordan, and should the note lead with the build record or the adoption record?", "status": "proposed", "input": []}
+            p["ball"], p["next"], p["next_date"] = OWNER, "Answer the plan: route and what to emphasize", gen
+        if step >= 4:
+            j["plan"]["input"] = [f"{gen}: approved (plan v1). Lead with the build record; Jordan is a good friend, ask directly."]
+            p["ball"], p["next"] = "claude", "Claude drafts the note to Jordan and the resume"
+        if step >= 5:
+            j["assets"] += [{"url": "#", "date": gen, "kind": "doc", "path": "application/cover-letter.md", "group": "Application", "label": "Cover note v1"},
+                            {"url": "#", "date": gen, "kind": "doc", "path": "application/note-jordan.md", "group": "Application", "label": "Note to Jordan Lee (draft)"}]
+            p["ball"], p["next"] = OWNER, "Review the drafts, then send the note to Jordan"
+    T["contacts"].append({"id": "c-rhea-kapoor", "payload": {"id": "c-rhea-kapoor", "name": "Rhea Kapoor", "company": "Lattice Health", "role": "VP Operations",
+        "how": "Warm intro", "status": "Not contacted", "priority": "High",
+        "hook": "Intro from Sam Delgado (email): they ran the claims automation program together at his last firm",
+        "notes": "", "linkedin": "", "touches": [{"date": gen, "type": "Email", "note": "Sam's intro email"}], "last_date": gen, "last_type": "Email",
+        "last_note": "Sam's intro email", "next_date": gen, "next_type": "Email", "next_action": "Reply to the intro and book a time", "roles": [], "url": "#"}})
+    T["verdicts"] = list(verd.values())
+    T["opportunities"] = list(opps.values())
+    T["jobs"] = [dict(r, payload=jobs[r["id"]]) for r in T["jobs"]]
+    T.setdefault("plan_inputs", [])
+    T.setdefault("org_watch", [])
+
+
 if __name__ == "__main__":
     OUT.parent.mkdir(parents=True, exist_ok=True)
+    board_v3(DATA)
     OUT.write_text(json.dumps(DATA, ensure_ascii=False, indent=0), encoding="utf-8")
     print(f"wrote {OUT} ({OUT.stat().st_size // 1024} KB): {len(RECORDS)} roles, {len(CONTACTS)} people, {len(OPPS)} opportunities, {len(STARTUPS)} startups")

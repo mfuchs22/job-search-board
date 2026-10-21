@@ -4,11 +4,11 @@ A one-screen command center for a senior-level, network-driven job search, built
 
 **[Open the live demo](https://demo.mattfuchs.dev/job-board/)** (also on [GitHub Pages](https://mfuchs22.github.io/job-search-board/)): the real page, running on invented data, no sign-in. Click around; verdicts and stage moves work and are forgotten when you reload.
 
-[![The Overview tab](screenshots/overview.png)](https://mfuchs22.github.io/job-search-board/)
+[![The Pipeline tab](screenshots/pipeline.png)](https://mfuchs22.github.io/job-search-board/)
 
 ## What it does
 
-The board is a funnel. Postings arrive in the **Inbox** after an overnight read; each gets a verdict (Pursue, Maybe, Pass), a calibration of the score, and a note. Pursues land on the **Shortlist** in three columns by kind of role and move through research and outreach. Once an application is in, the role moves to **In Process**, where each opportunity has its own page: who is next, what to get across, what to ask, the timeline, the people, the prep and every document sent. **Closed** and **Passed** keep the audit trail. Alongside the jobs track, a **Startups** track screens a city's startup scene, a **Network** tab runs the people (who to touch, when, why), **To-dos** gathers every next step in one agenda, and a **Map** shows where the roles and the startups actually sit.
+The board follows the process. Postings arrive in the **Inbox** after an overnight read; each gets a verdict, Pursue or Pass, with a flag for the ones that stand out and a comment. A Pursue lands in the **Pipeline**, organized by stage: Research, Outreach, Application, In process, Negotiation, then Closed and Past. Every opportunity shows a bar of the steps inside its stage (diligence, warm paths, a written strategy, the owner's call, drafts, the send; then the reply, the interviews, the debriefs), and a step counts as done only when its evidence is on the record. Overnight routines do the research and the drafting; the owner makes the calls and sends everything. **Today** is the one list to act from: interviews and calls coming up, plans waiting on an answer, new introductions, due moves and the decisions the board proposes. **People** keeps the conversations that have no posting attached, intros first, and the **Map** shows where the live opportunities sit.
 
 The rubric is a living document. Every verdict is logged against the score it corrected, and the rubric is revised in numbered versions from those logs. After the first fifty-odd verdicts the finding was that the point score barely discriminates above the floor; the gates (location, travel, role shape, company trajectory, hard requirements) do the real work, so the current rubric runs gates first and points second.
 
@@ -40,20 +40,19 @@ Collection and dedupe are plumbing: a scheduled script, no model in it. Scoring,
 
 | | |
 |---|---|
-| **Inbox** · the morning review. A card per posting that cleared the screen: what the role is, what they ask for, the company and whether it is growing, who you know there, the rubric's arithmetic. Verdict, calibration, note, Enter, next card. [![Inbox](screenshots/inbox.png)](screenshots/inbox.png) | **Shortlist** · every Pursue not yet applied, in three columns by kind of role, tagged with its stage, days on the list and days in stage, amber when stale. Human-path tiles at the top say how many have a warm way in. [![Shortlist](screenshots/shortlist.png)](screenshots/shortlist.png) |
-| **In Process** · one page per live opportunity: next up, whose move it is, what to get across, what to ask and avoid, what is settled and still open; tabs for the role, the timeline, the people, the prep and the library of everything sent. [![In Process](screenshots/in-process-role.png)](screenshots/in-process-role.png) | **Role detail** · everything the engine knows about one posting: the office on a map, why it scored, the human path, the posting's liveness, the company's growth read. [![Role detail](screenshots/role-detail.png)](screenshots/role-detail.png) |
-| **Startups** · a city's startup scene, pre-scored by a deterministic screen, reviewed one by one: Interesting, Watch or Pass. The Watchlist groups the kept ones into theses; a quick diligence pass fills each profile. [![Startups](screenshots/startups-review.png)](screenshots/startups-review.png) | **Network** · the people, with a next touch and a date each. Overdue, today and this week up top; the pane edits the next touch and logs the one just made. The home is a Notion database; edits here save there. [![Network](screenshots/network.png)](screenshots/network.png) |
-| **To-dos** · one agenda over three homes: a role's next step, a person's next touch, a career task. Done, Today, Tomorrow, Next week, Later. Changes stage in the browser and sync in one batch. [![To-dos](screenshots/todos.png)](screenshots/todos.png) | **Map** · Pursue and Maybe roles at the office they hire into, and the startups called Interesting or Watch beneath them. Filters are the same chips as the lists. [![Map](screenshots/map.png)](screenshots/map.png) |
+| **Today** · the one list to act from. The top three first (interviews and calls in the next day, a plan waiting on an answer, a new introduction, a due move ranked by fit), everything else folded. Changes stage in the browser and sync in one batch. [![Today](screenshots/today.png)](screenshots/today.png) | **Inbox** · the morning review. A card per posting that cleared the screen: what the role is, what they ask for, the company and whether it is growing, who you know there, the rubric's arithmetic. Pursue or Pass, a flag, a comment, Enter, next card. [![Inbox](screenshots/inbox.png)](screenshots/inbox.png) |
+| **Pipeline** · every live opportunity by stage, a column each. Cards show the step bar, whose move it is and the next step. Research keeps Active roles up front and the Bench folded; open a stage for the full list. [![Pipeline](screenshots/pipeline-research.png)](screenshots/pipeline-research.png) | **Opportunity** · one home per opportunity: the step tracker, the next step and quick moves, then tabs for the strategy (answered right there), the brief, the people, the timeline and every document. [![Opportunity](screenshots/opportunity.png)](screenshots/opportunity.png) |
+| **People** · the network, grouped by where each relationship stands: intros to act on, conversations booked, follow-ups due, recently talked, worth reviving. The home is a Notion database; edits here save there. [![People](screenshots/people.png)](screenshots/people.png) | **Map** · the live opportunities at the office they hire into, filtered by stage, kind of role and work model. [![Map](screenshots/map.png)](screenshots/map.png) |
 
-Also: **Overview** (the funnel, the live opportunities, this week's flow, the split by kind of role), **Closed** (engaged and lost, or the ad went away), **Passed** (the rubric's training data), **Watchlist**, and a phone layout for the morning scan.
+And a phone layout for the morning scan.
 
-<p align="center"><img src="screenshots/phone-overview.png" width="200" alt="Phone: Overview"> <img src="screenshots/phone-inbox.png" width="200" alt="Phone: Inbox"> <img src="screenshots/phone-shortlist.png" width="200" alt="Phone: Shortlist"> <img src="screenshots/phone-todos.png" width="200" alt="Phone: To-dos"></p>
+<p align="center"><img src="screenshots/phone-today.png" width="200" alt="Phone: Today"> <img src="screenshots/phone-inbox.png" width="200" alt="Phone: Inbox"> <img src="screenshots/phone-pipeline.png" width="200" alt="Phone: Pipeline"> <img src="screenshots/phone-people.png" width="200" alt="Phone: People"></p>
 
 ## Layout
 
 ```
 web/
-  index.html            the board page (vanilla JS, supabase-js, realtime); startups.js the Startups tabs
+  index.html            the board page (vanilla JS, supabase-js, realtime); startups.js the Startups screens (off the board since v3)
   demo.js               demo mode: a stand-in for supabase-js that serves the page from demo/data.json
   demo/data.json        the invented dataset the demo runs on (py demo/make_demo.py rebuilds it)
   config.js             the demo config; config.example.js shows the live one
@@ -71,8 +70,10 @@ engine/
   notion_sync.py        pull people, opportunities, meetings and tasks from Notion into the mirrors
   startups.py           a city's startup list -> screened, geocoded cards for the Startups tab
   calibrate.py          the weekly rubric calibration: tier table, window verdicts, regex backtests
-  stage_history.py      when each role entered each stage; pulse_history.py the Overview's trend
+  stage_history.py      when each role entered each stage; pulse_history.py the network pulse
   sync_worker.py        the board's Sync now button, served by an always-on worker
+  network_intros.py     introductions found in mail -> people in the Network, next touch set
+  call_prep.py          calls booked in the next days that still owe a prep brief
 supabase/
   migrations/           schema: tables, row-level security, realtime publication
   functions/            opportunity-write, network-write, task-write (write Notion first, mirror after)

@@ -18,11 +18,10 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "screenshots"
 PORT = 8749
 DESKTOP = [
-    ("overview", "overview"), ("inbox", "inbox"), ("board", "shortlist"), ("active", "in-process"), ("active/{interviewing}", "in-process-role"),
-    ("job/{inbox}", "role-detail"), ("closed", "closed"), ("screened", "passed"), ("startups", "startups-review"), ("startups/lumen-agents", "startup-profile"),
-    ("watchlist", "watchlist"), ("network", "network"), ("todos", "todos"), ("map", "map"),
+    ("today", "today"), ("inbox", "inbox"), ("pipeline", "pipeline"), ("pipeline/research", "pipeline-research"),
+    ("pipeline/{research}", "opportunity"), ("people", "people"), ("map", "map"),
 ]
-PHONE = [("overview", "phone-overview"), ("inbox", "phone-inbox"), ("board", "phone-shortlist"), ("todos", "phone-todos")]
+PHONE = [("today", "phone-today"), ("inbox", "phone-inbox"), ("pipeline", "phone-pipeline"), ("people", "phone-people")]
 
 
 def serve():
@@ -41,11 +40,12 @@ def main():
         ctx = browser.new_context(viewport={"width": 1440, "height": 900}, device_scale_factor=2)
         page = ctx.new_page()
         page.on("pageerror", lambda e: errs.append(str(e)))
-        page.goto(f"http://127.0.0.1:{PORT}/#overview")
+        page.goto(f"http://127.0.0.1:{PORT}/#today")
         page.wait_for_timeout(2500)
         ids = page.evaluate("""() => ({
             interviewing: (JOBS.find(j => j.stage === 'interviewing') || JOBS[0]).id,
-            inbox: (JOBS.find(j => !j.verdict && !j.stage && j.score >= 8) || JOBS[0]).id })""")
+            inbox: (JOBS.find(j => !j.verdict && !j.stage && j.score >= 8) || JOBS[0]).id,
+            research: (JOBS.find(j => j.plan && j.plan.status === 'proposed' && !(j.plan.input || []).length) || JOBS[0]).id })""")
         for route, name in DESKTOP:
             page.evaluate("h => { location.hash = '#' + h; }", route.format(**ids))
             page.wait_for_timeout(1800 if "map" in route else 1200)
@@ -55,7 +55,7 @@ def main():
         ctx = browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2, is_mobile=True, has_touch=True)
         page = ctx.new_page()
         page.on("pageerror", lambda e: errs.append(str(e)))
-        page.goto(f"http://127.0.0.1:{PORT}/#overview")
+        page.goto(f"http://127.0.0.1:{PORT}/#today")
         page.wait_for_timeout(2500)
         for route, name in PHONE:
             page.evaluate("h => { location.hash = '#' + h; }", route)
