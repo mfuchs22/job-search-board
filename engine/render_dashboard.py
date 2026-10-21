@@ -8,6 +8,7 @@ import csv
 import json
 import re
 import socket
+import subprocess
 from datetime import datetime, timezone
 
 try:
@@ -161,6 +162,25 @@ def campaign_record(vault, job_file):
             "people": stake, "get_across": _items(sec.get("get across", [])), "ask": _items(sec.get("ask", [])),
             "avoid": _items(sec.get("avoid", [])), "settled": _items(sec.get("settled", [])),
             "open": _items(sec.get("open", [])), "fix": _items(sec.get("fix from last time", [])), "pages": pages}
+
+
+def plan_record(vault, job_file):
+    """campaign.md's ## Plan (written by the nightly pursue-followup routine) and ## the owner's input (his answer on the
+    Today plan card, folded in by engine/pursue_followup.py), for Today and the Notion page body. None without a plan."""
+    d = opp_dir(vault, job_file) if job_file else None
+    f = d / "campaign.md" if d else None
+    if not f or not f.exists():
+        return None
+    sec = _sections(f.read_text(encoding="utf-8"))
+    if "plan" not in sec:
+        return None
+    kv = _keyvals(sec["plan"])
+    v = re.match(r"(\d+)\s*\((\d{4}-\d{2}-\d{2})\)", kv.get("version", ""))
+    return {"version": int(v.group(1)) if v else 1, "date": v.group(2) if v else "",
+            "route": kv.get("route", ""), "why": kv.get("why", ""), "people": kv.get("people", ""),
+            "materials": kv.get("materials", ""), "decision": kv.get("decision for owner", ""),
+            "status": kv.get("status", "proposed"),
+            "input": [_plain(l.lstrip("-* ").strip()) for l in sec.get("owner's input", []) if l.strip()]}
 
 
 def timeline_rows(vault, job_file):
@@ -339,7 +359,18 @@ def radar_pulse(p):
     if not best:
         return None
     d, t, mail, rows, above, status, note = best.groups()
-    return {"at": f"{d}T{t}:00+00:00", "date": d, "status": status, "mail": int(mail), "rows": int(rows),
+    at = f"{d}T{t}:00+00:00"
+    # The HH:MM is written by hand in the cloud session and has been off by an hour or more (2026-10-19: "09:12 UTC" for a
+    # run committed 08:16, which put "Refresh pending" on a current board). The commit that landed the line is when the
+    # rows actually arrived, so it wins when it is from the same day.
+    try:
+        landed = subprocess.run(["git", "-C", str(hb.parent.parent), "log", "-1", "--format=%cI", "--", str(hb)],
+                                capture_output=True, text=True, timeout=20).stdout.strip()
+        if landed and datetime.fromisoformat(landed).astimezone(timezone.utc).strftime("%Y-%m-%d") == d:
+            at = datetime.fromisoformat(landed).astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+    except (OSError, ValueError, subprocess.SubprocessError):
+        pass
+    return {"at": at, "stamped": f"{d}T{t}:00+00:00", "date": d, "status": status, "mail": int(mail), "rows": int(rows),
             "above_floor": int(above), "note": (note or "").strip()[:300]}
 
 
@@ -366,7 +397,8 @@ def board_payload(cfg, p, data, health=None):
     docs = {j["id"]: render_job_md(p.vault, j["job_file"]) for j in live if j.get("job_file")}
     extras = {j["id"]: {"campaign": campaign_record(p.vault, j["job_file"]), "timeline": timeline_rows(p.vault, j["job_file"]),
                         "assets": asset_list(p.vault, j["job_file"]), "meetings_vault": meeting_rows(p.vault, j["job_file"]),
-                        "log": log_rows(p.vault, j["job_file"])}
+                        "log": log_rows(p.vault, j["job_file"]),
+                        "plan": plan_record(p.vault, j["job_file"])}
               for j in live if j.get("job_file")}
     jobs = [page_record(j, docs, extras) for j in live]
     sibs = sibling_map(live)

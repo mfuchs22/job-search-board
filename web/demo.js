@@ -67,7 +67,7 @@ window.demoClient = function (src) {
     "opportunity-write": b => {
       const f = b.fields || {}, r = mirror("opportunities", b.id), o = r.payload;
       if (b.action === "promote") Object.assign(o, { stage: "shortlist", outcome: null, next: null, next_date: null, company_name: f.company || o.company_name || "", company: null, people: [], meetings: [], tasks: [], flag: !!f.flag, url: "", page: "demo-" + b.id });
-      if (b.action === "update") { ["stage", "outcome", "next", "next_date", "flag", "hp"].forEach(k => { if (f[k] !== undefined) o[k] = f[k]; }); }
+      if (b.action === "update") { ["stage", "outcome", "next", "next_date", "flag", "hp", "lane", "ball"].forEach(k => { if (f[k] !== undefined) o[k] = f[k]; }); }
       if (b.action === "close") Object.assign(o, { stage: "closed", outcome: f.outcome || "withdrew" });
       if (b.action === "link") { const k = b.kind === "person" ? "people" : b.kind === "meeting" ? "meetings" : b.kind === "task" ? "tasks" : null; if (k) { o[k] = o[k] || []; if (b.target && !o[k].includes(b.target)) o[k].push(b.target); } if (b.kind === "company") o.company = b.target; }
       o.edited = now(); return { opportunity: o };

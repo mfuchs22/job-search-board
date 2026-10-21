@@ -452,6 +452,7 @@ a.pill.lnk{display:inline-block;border-radius:999px;padding:2px 10px;border:1px 
 .td-box{width:16px;height:16px;border:1.5px solid var(--ghost);border-radius:4px;flex:none;margin-top:3px;background:var(--surface);padding:0;cursor:pointer}
 .td-box:hover{border-color:var(--accent);background:var(--accent-soft)}
 .td-tx{flex:1;min-width:0}.td-tx b{font-weight:500;display:block;line-height:1.35}.td-tx i{font-style:normal;font-size:var(--fs-sm);color:var(--muted);display:block}
+.td-why{font-style:normal;font-size:var(--fs-sm);font-weight:500;color:var(--accent);display:block}
 .td-k{font-size:11px;font-weight:500;border-radius:4px;padding:1px 6px;white-space:nowrap;margin-top:3px}
 .td-k.role{background:var(--accent-soft);color:var(--accent2)}.td-k.person{background:var(--green-soft);color:var(--green-text)}.td-k.task{background:var(--chip);color:var(--text2)}
 .td-dt{font-family:"IBM Plex Mono",Consolas,monospace;font-size:12.5px;white-space:nowrap;margin-top:3px;color:var(--faint)}
@@ -475,6 +476,13 @@ a.pill.lnk{display:inline-block;border-radius:999px;padding:2px 10px;border:1px 
 .td-row.pend{border-left-color:var(--amber)}.td-row.pend.on{border-left-color:var(--accent)}
 button.td-undo{font-size:11.5px;padding:1px 7px;color:var(--amber-text);border-color:var(--amber-line);background:var(--surface);margin-top:2px;white-space:nowrap}
 .td-now .td-btns{gap:4px}.td-now .td-btns button{font-size:11.5px;padding:1px 7px}
+/* Today's plan cards (2026-10-20): one per Active role, answered before anything is drafted. */
+.pl-card{padding:12px 14px;display:flex;flex-direction:column;gap:8px}.pl-card.pend{border-left:3px solid var(--amber)}
+.pl-h{display:flex;flex-direction:column;gap:1px}.pl-h b{font-weight:600}
+.pl-route{font-size:var(--fs-lg);font-weight:500}.pl-route .nw-lab{display:inline;margin-right:4px}
+.pl-l{font-size:var(--fs-sm);color:var(--text2)}.pl-q{font-weight:500;border-left:3px solid var(--accent);padding-left:8px}
+.pl-card textarea{width:100%;box-sizing:border-box;font:inherit;font-size:var(--fs-sm);padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);resize:vertical}
+@media (max-width:900px){.pl-card .td-btns button{padding:7px 14px;font-size:14px}.td-drawer .td-btns button{padding:6px 12px;font-size:13.5px}}
 @media (max-width:1100px){.td{grid-template-columns:minmax(0,1fr) 400px}}
 @media (max-width:900px){.td{grid-template-columns:1fr}.td-side{position:static;max-height:none;order:-1}.td-side .td-pane{display:none}.td-drawer{padding-left:12px}}
 /* Maps (2026-09-15): the hiring office on the detail page, and a Map view of Pursue and Maybe roles.
@@ -645,7 +653,7 @@ const ICON={
 let JOBS=[],byId={},SUMMARY={},COMPANIES={},ORGS={},STAGE_HIST={},PULSE={},PATHS={},STAGES=[],OUTCOMES=[],ROLE_TYPES={},CONTACTS=[],NPAGES={};
 /* Notion is the home for a Pursue role (2026-09-17): OPPS mirrors its Opportunities pages, keyed by record id,
    and carries the links to people, meetings, tasks and the company. MEETINGS mirrors Meeting Notes. */
-let OPPS={},MEETINGS=[],TASKS=[]; /* TASKS mirrors the open career tasks (To-dos tab, 2026-09-22) */
+let OPPS={},MEETINGS=[],TASKS=[],PLANIN={}; /* TASKS mirrors the open career tasks (To-dos tab, 2026-09-22) */
 let REVIEW=8,BOARDF=7,loaded=false,state={};
 function fb(id){return state[id]||(state[id]={v:"",cal:"",note:"",flag:false,stage:"",outcome:"",next:"",vts:"",sts:""});}
 /* A card's verdict, calibration and note are staged here until Submit. Nothing
@@ -661,7 +669,7 @@ function applyOpp(o){if(!o||!o.id)return;OPPS[o.id]=o;const s=fb(o.id);Object.as
 function applyVerdictRow(x){const s=fb(x.id);if(tsNum(x.ts)>tsNum(s.vts))Object.assign(s,{v:x.v||"",cal:x.cal||"",note:x.note||"",flag:!!x.flag,vts:x.ts});}
 let VIEWS={};
 async function loadBoard(){
-  const [j,m,v,ct,op,mt,sr,tk,stp,svr,ow]=await Promise.all([sb.from("jobs").select("id,payload"),sb.from("board_meta").select("key,payload"),sb.from("verdicts").select("*"),sb.from("contacts").select("id,payload"),sb.from("opportunities").select("id,payload"),sb.from("meetings").select("id,payload"),sb.from("sync_requests").select("*").order("requested_at",{ascending:false}).limit(1),sb.from("tasks").select("id,payload"),sb.from("startups").select("id,payload"),sb.from("startup_verdicts").select("*"),sb.from("org_watch").select("*")]);
+  const [j,m,v,ct,op,mt,sr,tk,stp,svr,ow,pi]=await Promise.all([sb.from("jobs").select("id,payload"),sb.from("board_meta").select("key,payload"),sb.from("verdicts").select("*"),sb.from("contacts").select("id,payload"),sb.from("opportunities").select("id,payload"),sb.from("meetings").select("id,payload"),sb.from("sync_requests").select("*").order("requested_at",{ascending:false}).limit(1),sb.from("tasks").select("id,payload"),sb.from("startups").select("id,payload"),sb.from("startup_verdicts").select("*"),sb.from("org_watch").select("*"),sb.from("plan_inputs").select("job_id,version")]);
   const err=j.error||m.error||v.error;
   if(err){setSync("err","load failed: "+err.message);return false;}
   JOBS=(j.data||[]).map(r=>r.payload);byId={};JOBS.forEach(x=>byId[x.id]=x);
@@ -672,6 +680,7 @@ async function loadBoard(){
   OPPS={};(op.error?[]:(op.data||[])).forEach(r=>{if(r.payload&&r.payload.id)OPPS[r.payload.id]=r.payload;});
   MEETINGS=mt.error?[]:(mt.data||[]).map(r=>r.payload);
   TASKS=tk.error?[]:(tk.data||[]).map(r=>r.payload);
+  PLANIN={};(pi&&!pi.error?pi.data||[]:[]).forEach(r=>{PLANIN[r.job_id+"|"+r.version]=true;}); /* plan answers already sent (Today) */
   SYNCREQ=sr.error?null:((sr.data||[])[0]||null); /* the newest Sync request, if the table exists */
   STAGES=SUMMARY.stages||["shortlist","researching","outreach","applied","interviewing","offer","closed"];
   OUTCOMES=SUMMARY.outcomes||["no_response","rejected","withdrew","accepted"];
@@ -1243,10 +1252,10 @@ function stage(key,patch){const p=PEND[key]||{};Object.assign(p,patch);delete p.
 function unstage(key){delete PEND[key];savePend();}
 function todoItems(){const out=[];
   JOBS.forEach(j=>{if(excl(j)||verdictOf(j)!=="pursue"||isClosed(j))return;const s=fb(j.id);const d=tdDay(s.nextDate);
-    out.push({key:"role:"+j.id,kind:"role",id:j.id,j,text:s.next||"Set a next step",who:j.company,sub:j.title+" · "+stageLabel(stageOf(j)),date:s.next?d:"",b:s.next?tdKind(d):"nostep",nostep:!s.next});});
+    out.push({key:"role:"+j.id,kind:"role",id:j.id,j,lane:(OPPS[j.id]||{}).lane||"",ball:(OPPS[j.id]||{}).ball||"",text:s.next||"Set a next step",who:j.company,sub:j.title+" · "+stageLabel(stageOf(j)),date:s.next?d:"",b:s.next?tdKind(d):"nostep",nostep:!s.next});});
   /* Working together is consulting, not job search (the owner, 2026-09-22: two consulting clients stay on Network, off this tab). */
   CONTACTS.forEach(c=>{if(netQuiet(c)||c.status==="Working together"||!(c.next_date||c.next_action))return;const d=tdDay(c.next_date);
-    out.push({key:"person:"+c.id,kind:"person",id:c.id,c,text:(c.next_type?c.next_type+": ":"")+(c.next_action||"next touch"),who:c.name||"(no name)",sub:[c.company,c.status].filter(Boolean).join(" · "),date:d,b:tdKind(d)});});
+    out.push({key:"person:"+c.id,kind:"person",id:c.id,c,text:(c.next_type&&!(c.next_action||"").toLowerCase().startsWith(c.next_type.toLowerCase())?c.next_type+": ":"")+(c.next_action||"next touch"),who:c.name||"(no name)",sub:[c.company,c.status].filter(Boolean).join(" · "),date:d,b:tdKind(d)});});
   TASKS.forEach(t=>{if(t.status==="Complete"||(t.area&&t.area!=="career")||t.project==="Consulting")return;const d=tdDay(t.plan_day||t.due);const o=(t.opps||[]).map(oppByPage).find(Boolean);const j=o&&byId[o.id];
     out.push({key:"task:"+t.id,kind:"task",id:t.id,t,j,text:t.title||"(untitled)",who:j?j.company:(t.project||"Career"),sub:["Notion task",t.priority,t.waiting?"waiting on "+t.waiting:"",t.plan_day&&t.due&&tdDay(t.plan_day)!==tdDay(t.due)?"due "+fmtDate(tdDay(t.due)):""].filter(Boolean).join(" · "),date:d,b:tdKind(d)});});
   /* What is staged shows at once: a Done strikes the row through where it sits, a new date moves it, a new step renames it. */
@@ -1259,19 +1268,19 @@ const todoDueCount=()=>todoItems().filter(i=>!i.done&&(i.b==="overdue"||i.b==="t
 const tdWhen=i=>i.nostep?"":!i.date?"no date":i.b==="today"?"Today":i.b==="overdue"?`${-daysFrom(i.date)}d late`:daysFrom(i.date)===1?"Tomorrow":i.b==="week"?new Date(i.date+"T12:00:00").toLocaleDateString([],{weekday:"short"}):new Date(i.date+"T12:00:00").toLocaleDateString([],{month:"short",day:"numeric"});
 const tdDateBtns=(k,small)=>`<button data-tsnooze="${k}" data-days="0">Today</button><button data-tsnooze="${k}" data-days="1">Tomorrow</button><button data-tsnooze="${k}" data-days="7">Next week</button><button data-tsnooze="${k}" data-days="later" title="No date">Later</button>`;
 const tdUndo=i=>i.p?`<button class="td-undo" data-tundo="${esc(i.key)}" title="Take back the staged change">Undo</button>`:"";
-const tdRow=(i,on,opts)=>{const k=esc(i.key);return`<div class="td-row${on?" on":""}${i.done?" done":""}${i.p?" pend":""}" data-tsel="${k}"><button class="td-box" data-tdone="${k}" aria-label="Done" title="Done"${i.nostep?" disabled":""}></button><div class="td-tx"><b>${esc(i.text)}</b><i>${esc(i.who)}${i.sub?" · "+esc(i.sub):""}</i>${opts&&opts.btns?`<div class="td-btns">${tdDateBtns(k)}</div>`:""}</div>${tdUndo(i)}<span class="td-k ${i.kind}">${cap(i.kind)}</span><span class="td-dt k-${i.b}">${tdWhen(i)}</span></div>`;};
+const tdRow=(i,on,opts)=>{const k=esc(i.key);return`<div class="td-row${on?" on":""}${i.done?" done":""}${i.p?" pend":""}" data-tsel="${k}"><button class="td-box" data-tdone="${k}" aria-label="Done" title="Done"${i.nostep?" disabled":""}></button><div class="td-tx"><b>${esc(i.text)}</b><i>${esc(i.who)}${i.sub?" · "+esc(i.sub):""}</i>${opts&&opts.why?`<em class="td-why">${esc(opts.why)}</em>`:""}${opts&&opts.btns?`<div class="td-btns">${tdDateBtns(k)}</div>`:""}</div>${tdUndo(i)}<span class="td-k ${i.kind}">${cap(i.kind)}</span><span class="td-dt k-${i.b}">${tdWhen(i)}</span></div>`;};
 const tdFold=new Set();
 function tdGroups(items){const g=[];const push=(key,name,list)=>{if(list.length)g.push({key,name,list});};
   push("od","Overdue",items.filter(i=>i.b==="overdue"));push("td","Today · "+fmtDate(todayIso()),items.filter(i=>i.b==="today"));
   for(let k=1;k<=5;k++){const d=plusDays(k);push(d,fmtDate(d),items.filter(i=>i.date===d&&i.b==="week"));}
   push("nx","Next week",items.filter(i=>i.b==="next"));push("lt","Later and undated",items.filter(i=>i.b==="later"||i.b==="none"));push("ns","No next step yet",items.filter(i=>i.b==="nostep"));return g;}
 const tdSameThing=(a,b)=>a.who===b.who||(a.j&&b.j&&a.j.id===b.j.id)||(a.j&&b.c&&b.c.company&&sameCo(b.c.company,a.j.company))||(a.c&&b.j&&a.c.company&&sameCo(a.c.company,b.j.company))||(a.j&&b.j&&sameCo(a.j.company,b.j.company));
-const tdPendLine=i=>{const p=i.p;if(!p)return"";const what=[p.done?"Done":"",p.next!==undefined?`next step "${p.next}"`:"",p.date!==undefined?(p.date?"moved to "+fmtDate(p.date):"date cleared"):"",p.form?"touch logged":""].filter(Boolean).join(", ");
+const tdPendLine=i=>{const p=i.p;if(!p)return"";const what=[p.done?"Done":"",p.next!==undefined?`next step "${p.next}"`:"",p.date!==undefined?(p.date?"moved to "+fmtDate(p.date):"date cleared"):"",p.form?"touch logged":"",p.mv?MOVES[p.mv]:""].filter(Boolean).join(", ");
   return`<div class="td-bar">Staged: <b>${esc(what)}</b>${p.err?`<span class="err">Last sync failed: ${esc(p.err)}</span>`:""}<button data-tundo="${esc(i.key)}">Undo</button></div>`;};
 function tdPane(i){const k=esc(i.key);
   let head="",body="",open="";
-  if(i.kind==="role"){const s=fb(i.id);const cur=i.p&&i.p.next!==undefined?i.p.next:s.next;head=`<div class="hint">${esc(i.j.company)} · ${esc(i.j.title)} · ${esc(stageLabel(stageOf(i.j)))}</div><h3>${i.nostep?"No next step yet":esc(i.text)}</h3>`;
-    body=`<div class="nw-box now"><div class="nw-lab">${i.done?"The following step":"Next step"}</div><input data-tnext="${esc(i.id)}" value="${esc(i.done?(i.p.next||""):cur)}" placeholder="Next step, then Enter" aria-label="Next step"></div>${s.note?`<div class="nw-sec"><div class="nw-lab">Your note</div><div class="nw-notes">${esc(s.note)}</div></div>`:""}`;
+  if(i.kind==="role"){const s=fb(i.id);const cur=i.p&&i.p.next!==undefined?i.p.next:s.next;head=`<div class="hint">${esc(i.j.company)} · ${esc(i.j.title)} · ${esc(stageLabel(stageOf(i.j)))}${i.lane?" · "+esc(cap(i.lane)):""}${i.ball?" · ball with "+esc(i.ball==="owner"?"you":i.ball):""}</div><h3>${i.nostep?"No next step yet":esc(i.text)}</h3>`;
+    body=`<div class="nw-box now"><div class="nw-lab">${i.done?"The following step":"Next step"}</div><input data-tnext="${esc(i.id)}" value="${esc(i.done?(i.p.next||""):cur)}" placeholder="Next step, then Enter" aria-label="Next step"></div>${moveBtns(i)}${s.note?`<div class="nw-sec"><div class="nw-lab">Your note</div><div class="nw-notes">${esc(s.note)}</div></div>`:""}`;
     open=`<a class="chip pursue" href="#job/${esc(i.id)}">Open the role</a>`;}
   else if(i.kind==="person"){const c=i.c;head=`<div class="hint">${esc(c.name||"")}${c.company?" · "+esc(c.company):""}${c.status?" · "+esc(c.status):""}</div><h3>${esc(i.text)}</h3>`;
     body=`${c.hook?`<div class="nw-box why"><div class="nw-lab">Why now</div><div>${esc(c.hook)}</div></div>`:""}${doneOpen===c.id&&!i.done?netDoneForm(c).replace('<form class="doneform"','<form class="doneform" data-tstage="'+k+'"').replace("Save to Notion","Stage it"):""}${c.notes?`<div class="nw-sec"><div class="nw-lab">Notes</div><div class="nw-notes">${esc(c.notes)}</div></div>`:""}`;
@@ -1282,7 +1291,7 @@ function tdPane(i){const k=esc(i.key);
   const also=todoItems().filter(x=>x.key!==i.key&&tdSameThing(i,x));
   return`<div class="td-ph">${head}<div class="td-dt k-${i.b}">${i.date?esc(fmtDate(i.date))+(i.b==="overdue"?" · overdue":i.b==="today"?" · today":""):i.nostep?"":"no date"}</div></div>${tdPendLine(i)}
    <div class="td-btns">${i.nostep||i.done?"":`<button class="go" data-tdone="${k}">${i.kind==="person"&&doneOpen===i.id?"Close":"Done"}</button>${tdDateBtns(k)}`}${open}</div>${body}
-   <div class="nw-sec"><div class="nw-lab">Also for ${esc(i.who)}${also.length?` <span>${also.length}</span>`:""}</div>${also.length?also.map(x=>`<div class="ln"><a href="#todos/${esc(x.key)}"><b>${esc(x.text)}</b></a><span class="td-k ${x.kind}">${cap(x.kind)}</span><span class="td-dt k-${x.b}">${tdWhen(x)}</span></div>`).join(""):'<div class="faint">Nothing else</div>'}</div>
+   <div class="nw-sec"><div class="nw-lab">Also for ${esc(i.who)}${also.length?` <span>${also.length}</span>`:""}</div>${also.length?also.map(x=>`<div class="ln"><a href="${tdBase()}/${esc(x.key)}"><b>${esc(x.text)}</b></a><span class="td-k ${x.kind}">${cap(x.kind)}</span><span class="td-dt k-${x.b}">${tdWhen(x)}</span></div>`).join(""):'<div class="faint">Nothing else</div>'}</div>
    <div class="td-home">${TD_HOME[i.kind]}</div>`;}
 let tdSyncing=null; /* "3 of 7" while Sync runs */
 function tdBar(){const n=pendN();if(!n&&!tdSyncing)return"";const errs=Object.values(PEND).filter(p=>p.err).length;
@@ -1307,7 +1316,7 @@ async function taskWrite(body){setSync("","saving to Notion");
 /* Staging. Done on a role clears its step and asks for the following one; Done on a person opens the Network done
    form, whose submit stages the touch; Done on a task stages Complete. A date stages the move; "later" stages a
    cleared date. Nothing leaves the browser until Sync. */
-function todoDone(key){const [kind,id]=tdSplit(key);const h="#todos/"+key;const item=todoItems().find(i=>i.key===key);if(!item||item.nostep)return;
+function todoDone(key){const [kind,id]=tdSplit(key);const h=tdBase()+"/"+key;const item=todoItems().find(i=>i.key===key);if(!item||item.nostep)return;
   if(kind==="person"){doneOpen=doneOpen===id?null:id;if(location.hash!==h)location.hash=h;else paint();
     setTimeout(()=>{const f=view.querySelector(`[data-doneform="${CSS.escape(id)}"] select`);if(f)f.focus();},80);return;}
   stage(key,{done:true,text:item.text});toast(kind==="role"?"Done staged. What is the following step?":"Done staged");
@@ -1326,7 +1335,12 @@ async function todoSync(){if(tdSyncing)return;const keys=Object.keys(PEND);if(!k
     try{
       if(kind==="role"){const f={};if(p.done){f.next="";f.next_date="";}if(p.date!==undefined)f.next_date=p.date;
         if(p.next!==undefined){f.next=p.next;if(p.date===undefined)f.next_date=p.next?todayIso():"";}
+        if(p.mv){const m=moveFields(p.mv,id);if(p.next!==undefined)delete m.next;if(p.date!==undefined)delete m.next_date;Object.assign(f,m);}
         ok=!!await oppWrite({action:"update",id,fields:f});}
+      else if(kind==="plan"){const {error}=await sb.from("plan_inputs").insert({job_id:id,version:p.version,approve:!!p.approve,note:p.note||null});
+        if(error)setSync("err",error.message);
+        else{ok=true;PLANIN[id+"|"+p.version]=true;  /* the answer is saved; the next step is a courtesy and may fail alone */
+          await oppWrite({action:"update",id,fields:{ball:"claude",next:"Claude drafts from your plan answer",next_date:plusDays(1)}});}}
       else if(kind==="person"){if(p.form)ok=!!await netWrite({action:"done",id,fields:{...p.form,date:p.form.date||todayIso()}});
         if((ok||!p.form)&&p.date!==undefined)ok=!!await netWrite({action:"update",id,fields:{next_date:p.date}});}
       else{if(p.done)ok=!!await taskWrite({action:"done",id});
@@ -1337,11 +1351,99 @@ async function todoSync(){if(tdSyncing)return;const keys=Object.keys(PEND);if(!k
   tdSyncing=null;doneOpen=null;toast(failed?`${keys.length-failed} saved, ${failed} failed (still staged)`:`${keys.length} saved to Notion`);
   if(await loadBoard())paint();else paint();}
 
+/* ---------- Today (2026-10-20, the agreed post-Pursue workflow: Job Board App project, workflow/agreed-spec.md) ----------
+   One page for what needs the owner now. It replaces Overview, To-dos and Network in the nav; those pages still open from
+   their links, and no record moved. It is the To-dos list regrouped, so the same rule holds: nothing writes on click,
+   every change stages and the Sync button sends it. Sections, top down: interviews in the next three days; plans
+   waiting on his answer (one card per Active role, written nightly by the pursue-followup routine; Approve, or change
+   the route and add what to stress, avoid or who to go through; the answer goes to plan_inputs and
+   engine/pursue_followup.py folds it into campaign.md, and only then does anything get drafted); his moves (Active
+   roles whose ball is not with them, and career tasks); relationships (people to touch); waiting on them; the Bench,
+   folded. Quick moves on a role: Sent and Applied (stage, Ball them, a follow-up at 5 or 10 business days, the owner's
+   numbers), Promote under the cap of 8, Bench, Pause, Close. Phone first: the row opens a drawer with the moves. */
+const ACTIVE_CAP=8;
+const tdBase=()=>route().r==="today"?"#today":"#todos";
+const bizDays=n=>{const d=new Date();let k=0;while(k<n){d.setDate(d.getDate()+1);const w=d.getDay();if(w&&w<6)k++;}return d.toLocaleDateString("en-CA");};
+const laneOf=id=>(OPPS[id]||{}).lane||"";
+const early=j=>stageRank(stageOf(j))<stageRank("applied");
+const activeEarly=()=>JOBS.filter(j=>verdictOf(j)==="pursue"&&!isClosed(j)&&laneOf(j.id)==="active"&&early(j)).length;
+const MOVES={sent:"Sent",applied:"Applied",promote:"Promote to Active",bench:"Back to Bench",pause:"Pause",close:"Close"};
+function moveFields(mv,id){const st=stageOf(byId[id]);
+  if(mv==="sent")return{stage:stageRank(st)<stageRank("outreach")?"outreach":st,ball:"them",next:"Follow up if no reply",next_date:bizDays(5)};
+  if(mv==="applied")return{stage:stageRank(st)<stageRank("applied")?"applied":st,lane:"active",ball:"them",next:"Follow up on the application",next_date:bizDays(10)};
+  if(mv==="close")return{stage:"closed",outcome:"withdrew"};
+  return{lane:{promote:"active",bench:"bench",pause:"paused"}[mv]};}
+function moveBtns(i){if(i.kind!=="role"||i.done)return"";const k=esc(i.key),j=i.j,b=(mv,lab)=>`<button data-tmove="${k}" data-mv="${mv}">${lab||MOVES[mv]}</button>`;
+  return`<div class="nw-sec"><div class="nw-lab">Quick moves</div><div class="td-btns">${b("sent","Sent a note")}${early(j)?b("applied"):""}${i.lane!=="active"?b("promote"):early(j)?b("bench"):""}${i.lane!=="paused"?b("pause"):""}${b("close")}</div><div class="td-home">Sent: Outreach, ball with them, follow up in 5 business days. Applied: follow up in 10. Close is withdrew. Sync sends it.</div></div>`;}
+function todayMove(key,mv){const [,id]=tdSplit(key);const j=byId[id];if(!j||!MOVES[mv])return;
+  if(mv==="promote"&&early(j)&&activeEarly()>=ACTIVE_CAP){toast(`Active already has ${ACTIVE_CAP}. Bench or pause one first.`);return;}
+  stage(key,{mv,text:(todoItems().find(i=>i.key===key)||{}).text||""});toast("Staged: "+MOVES[mv]);render();}
+const planOpen=j=>{const p=j.plan;if(!p||p.status!=="proposed"||verdictOf(j)!=="pursue"||isClosed(j)||laneOf(j.id)!=="active")return false;
+  return!PLANIN[j.id+"|"+p.version]&&!(p.input||[]).some(l=>l.includes(`(plan v${p.version})`));};
+function planCard(j){const p=j.plan,k="plan:"+j.id,st=PEND[k];
+  const line=(l,v)=>v?`<div class="pl-l"><div class="nw-lab">${l}</div><div>${esc(v)}</div></div>`:"";
+  return`<div class="td-card pl-card${st?" pend":""}"><div class="pl-h"><a href="#job/${esc(j.id)}"><b>${esc(j.company)}</b></a><span class="hint">${esc(j.title)} · plan v${p.version}${p.date?" · "+esc(fmtDate(p.date)):""}</span></div>
+   <div class="pl-route"><span class="nw-lab">Route</span> ${esc(p.route||"none given")}</div>${line("Why",p.why)}${line("People",p.people)}${line("What would be drafted",p.materials)}${p.decision?`<div class="pl-q">${esc(p.decision)}</div>`:""}
+   ${st?`<div class="td-bar">Staged: <b>${st.approve?"Approved":"Changed"}</b>${st.note?" · "+esc(st.note):""}${st.err?`<span class="err">Last sync failed: ${esc(st.err)}</span>`:""}<button data-tundo="${esc(k)}">Undo</button></div>`
+     :`<textarea data-planote="${esc(j.id)}" rows="2" placeholder="Change the route, or add what to stress, what to avoid, who to go through"></textarea><div class="td-btns"><button class="go" data-plan="${esc(j.id)}" data-ok="1">Approve</button><button data-plan="${esc(j.id)}" data-ok="0">Send my changes</button></div>`}</div>`;}
+function planAnswer(id,ok){const j=byId[id];if(!j||!j.plan)return;const ta=view.querySelector(`textarea[data-planote="${CSS.escape(id)}"]`);const note=(ta&&ta.value||"").trim();
+  if(!ok&&!note){toast("Write the change first");if(ta)ta.focus();return;}
+  stage("plan:"+id,{version:j.plan.version,approve:ok,note,text:j.company});toast(ok?"Approval staged":"Changes staged");render();}
+/* Ranked, Active only (the owner, 2026-10-20, on the first draft: "a laundry list of all the things that were on a very
+   long to-do list before... doesn't help me prioritize"). The top block is at most TOP_N: an interview within three
+   days, then a plan to answer, then a due or late move on a role in play (Active, or Applied and later) by fit score,
+   then a reply owed; each says why it is there. Everything else folds into one closed section. A career task shows
+   only when it is linked to a role in play, and not when that role already has its own next step (the same move twice);
+   the rest stay on To-dos. */
+const TOP_N=3;
+const inPlay=i=>i.j&&verdictOf(i.j)==="pursue"&&!isClosed(i.j)&&(laneOf(i.j.id)==="active"||!early(i.j));
+function todayParts(){const k3=plusDays(3);
+  const all=todoItems();const stepped=new Set(all.filter(i=>i.kind==="role"&&!i.nostep).map(i=>i.id));
+  const items=all.filter(i=>i.kind==="person"||(i.kind==="role"&&(inPlay(i)||["bench","paused"].includes(i.lane)))||(i.kind==="task"&&inPlay(i)&&!stepped.has(i.j.id)));
+  const live=i=>i.kind!=="person"&&inPlay(i);
+  const iv=items.filter(i=>i.kind==="role"&&stageOf(i.j)==="interviewing"&&i.date&&i.date<=k3);const ivk=new Set(iv.map(i=>i.key));
+  const rest=items.filter(i=>!ivk.has(i.key));
+  const mine=rest.filter(i=>live(i)&&i.ball!=="them");
+  const plans=JOBS.filter(planOpen).sort((a,b)=>(b.score||0)-(a.score||0));const planned=new Set(plans.map(j=>j.id));
+  const due=mine.filter(i=>!i.nostep&&!planned.has(i.j.id)&&(i.b==="overdue"||i.b==="today")).sort((a,b)=>((b.j.score||0)-(a.j.score||0))||(a.date||"").localeCompare(b.date||""));
+  const reply=mine.filter(i=>/^Reply to /.test(i.text)&&!due.includes(i));
+  const ranked=[...iv.map(i=>({i,why:"Interview "+tdWhen(i).replace(/^(Today|Tomorrow)$/,m=>m.toLowerCase())})),...plans.map(j=>({j,why:"Plan waiting on your answer"})),
+    ...due.map(i=>({i,why:(i.b==="overdue"?tdWhen(i):"Due today")+" · fit "+(i.j.score??"?")})),...reply.map(i=>({i,why:"They wrote back"}))];
+  const top=ranked.filter(r=>!(r.i&&r.i.done)).slice(0,TOP_N);const topk=new Set(top.map(r=>r.i?r.i.key:"plan:"+r.j.id));
+  const left=l=>l.filter(i=>!topk.has(i.key));
+  return{items,top,iv:left(iv),plans:plans.filter(j=>!topk.has("plan:"+j.id)),
+    now:left(mine.filter(i=>(i.b==="overdue"||i.b==="today")&&!(i.kind==="role"&&planned.has(i.id)))),nostep:left(mine.filter(i=>i.b==="nostep")),soon:left(mine.filter(i=>!["overdue","today","nostep"].includes(i.b))),
+    people:rest.filter(i=>i.kind==="person"),theirs:rest.filter(i=>live(i)&&i.ball==="them"),
+    bench:rest.filter(i=>i.kind==="role"&&i.lane==="bench"),paused:rest.filter(i=>i.kind==="role"&&i.lane==="paused")};}
+const todayCount=()=>todayParts().top.length;
+function viewToday(arg){const t=todayParts();
+  const all=[...t.top.filter(r=>r.i).map(r=>r.i),...t.iv,...t.now,...t.nostep,...t.soon,...t.people,...t.theirs,...t.bench,...t.paused];
+  const sel=all.find(i=>i.key===arg)||(SPLIT.matches?(t.top.find(r=>r.i)||{}).i||null:null);
+  const on=i=>!!(sel&&i.key===sel.key);
+  const row=(i,why)=>tdRow(i,on(i),why?{why}:null)+(!SPLIT.matches&&on(i)?`<div class="td-drawer">${tdPane(i)}</div>`:"");
+  const rows=list=>list.map(i=>row(i)).join("");
+  const sec=(key,name,list,folded,hint)=>{if(!list.length)return"";const f=tdFold.has(key)!==!!folded;
+    return`<div class="td-grp"><button class="td-gh${f?" fold":""}" data-tfold="${key}">${esc(name)}<span>${list.length}</span></button>${f?"":`${hint?`<div class="hint">${hint}</div>`:""}<div class="td-card">${rows(list)}</div>`}</div>`;};
+  /* In rank order: consecutive rows share one card, a plan is its own card between them. */
+  const runs=[];t.top.forEach(r=>{const last=runs[runs.length-1];if(r.i&&last&&last.rows)last.rows.push(r);else runs.push(r.i?{rows:[r]}:{plan:r.j});});
+  const first=t.top.length?`<div class="td-grp td-top"><div class="td-gh">Do these first<span>${t.top.length}</span></div>${runs.map(x=>x.rows?`<div class="td-card">${x.rows.map(r=>row(r.i,r.why)).join("")}</div>`:planCard(x.plan)).join("")}</div>`:"";
+  const restPlans=t.plans.length?`<div class="td-grp"><div class="td-gh">Plans to answer<span>${t.plans.length}</span></div><div class="hint">Nothing is drafted until you answer. Approve as is, or say what to change; Sync sends it.</div>${t.plans.map(planCard).join("")}</div>`:"";
+  const inner=sec("iv","Interviews, next 3 days",t.iv)+restPlans+sec("now","Also due · "+fmtDate(todayIso()),t.now)+sec("ns","Active, no next step yet",t.nostep)
+    +sec("soon","Coming up",t.soon)+sec("ppl","Relationships",t.people)+sec("them","Waiting on them",t.theirs)
+    +sec("bench","Bench",t.bench,true,"Quick research runs on these too. Promote one when Active has room.")+sec("paused","Paused",t.paused,true);
+  const n=t.iv.length+t.plans.length+t.now.length+t.nostep.length+t.soon.length+t.people.length+t.theirs.length+t.bench.length+t.paused.length;
+  const shut=!tdFold.has("rest");
+  const more=n?`<div class="td-grp"><button class="td-gh${shut?" fold":""}" data-tfold="rest">Everything else<span>${n}</span></button>${shut?"":inner}</div>`:"";
+  const ae=activeEarly();
+  return`<div class="sh"><h2>Today <span>${t.top.length} to do first · Active ${ae}/${ACTIVE_CAP}</span></h2><div class="hint">Ranked: interviews, then plans, then due moves on Active roles by fit. Sync saves changes to Notion.</div></div>${tdBar()}
+   <div class="td"><div class="td-main">${first||'<div class="emptybig"><b>Nothing needs you first</b><span>No interview, plan or Active move is due.</span></div>'}${more}</div>
+   <div class="td-side">${SPLIT.matches?`<div class="td-card td-pane">${sel?tdPane(sel):'<div class="hint">Pick a row on the left.</div>'}</div>`:""}</div></div>`;}
+
 /* ---------- views ---------- */
-const NAV=[["overview","Overview",ICON.home,()=>"",""],["inbox","Inbox",ICON.inbox,c=>c.review+c.border,"Jobs"],["board","Shortlist",ICON.board,()=>JOBS.filter(j=>verdictOf(j)==="pursue"&&!isClosed(j)&&!campaignStage(j)).length,"Jobs"],["active","In Process",ICON.flag,()=>liveJobs().length,"Jobs"],["closed","Closed",ICON.out,()=>closedJobs().length,"Jobs"],["screened","Passed",ICON.out,c=>c.passed,"Jobs"],["startups","Review",ICON.rocket,()=>typeof sCounts==="function"?sCounts().unscreened:0,"Startups"],["watchlist","Watchlist",ICON.eye,()=>typeof sCounts==="function"?sCounts().interesting+sCounts().watch:0,"Startups"],["screened-startups","Passed",ICON.out,()=>typeof STARTUPS!=="undefined"?STARTUPS.filter(s=>svOf(s)==="pass").length:0,"Startups"],["network","Network",ICON.people,c=>c.netDue,"-"],["todos","To-dos",ICON.todo,()=>todoDueCount(),"-"],["map","Map",ICON.map,()=>mapPool().filter(pinOf).length,"-"]];
+const NAV=[["today","Today",ICON.todo,()=>todayCount()||"",""],["inbox","Inbox",ICON.inbox,c=>c.review+c.border,"Jobs"],["board","Shortlist",ICON.board,()=>JOBS.filter(j=>verdictOf(j)==="pursue"&&!isClosed(j)&&!campaignStage(j)).length,"Jobs"],["active","In Process",ICON.flag,()=>liveJobs().length,"Jobs"],["closed","Closed",ICON.out,()=>closedJobs().length,"Jobs"],["screened","Passed",ICON.out,c=>c.passed,"Jobs"],["startups","Review",ICON.rocket,()=>typeof sCounts==="function"?sCounts().unscreened:0,"Startups"],["watchlist","Watchlist",ICON.eye,()=>typeof sCounts==="function"?sCounts().interesting+sCounts().watch:0,"Startups"],["screened-startups","Passed",ICON.out,()=>typeof STARTUPS!=="undefined"?STARTUPS.filter(s=>svOf(s)==="pass").length:0,"Startups"],["map","Map",ICON.map,()=>mapPool().filter(pinOf).length,"-"]];
 /* Phone (2026-09-24, the owner on his iPhone: eleven tabs jammed into the bottom bar): the bar keeps the four PRI tabs and a
    More button; More opens a sheet with the rest. Desktop shows the full rail and never the button. */
-const PRI=["overview","inbox","board","active"];
+const PRI=["today","inbox","board","active"];
 function nav(route){const c=counts();const rest=NAV.filter(n=>!PRI.includes(n[0]));const cur=rest.find(n=>n[0]===route);
   const head=(g,i,arr)=>g&&(i===0||arr[i-1][4]!==g)?`<div class="navh${g==="-"?" div":""}">${g==="-"?"":g}</div>`:"";
   document.getElementById("nav").innerHTML=NAV.map(([k,l,ic,f,g],i,arr)=>head(g,i,arr)+`<a href="#${k}" class="${route===k?"on":""}${PRI.includes(k)?" pri":""}">${ic}<span>${l}</span><span class="mono n">${f(c)}</span></a>`).join("")
@@ -1779,7 +1881,7 @@ function viewClosed(id){const L=closedJobs(),E=L.filter(j=>closedOutcome(j)!=="p
     <div class="sh" style="margin-top:18px"><h2>Gone, awaiting your confirm <span>${G.length}</span></h2><div class="hint">Shortlist roles whose ad is down. Confirm the removal to close the role under Posting gone, or leave it if you still want the company. Roles off the shortlist close on their own.</div></div>
     ${G.length?`<div class="card" style="padding:0;overflow:hidden">${G.map(j=>postingRow(j,true)).join("")}</div>`:'<div class="empty">Every shortlist posting checked is still up.</div>'}
     ${U.length?`<div class="sh" style="margin-top:18px"><h2>Needs a look <span>${U.length}</span></h2><div class="hint">The page gave mixed signals, so nobody called it. Open the posting and decide.</div></div><div class="card" style="padding:0;overflow:hidden">${U.map(j=>postingRow(j,false)).join("")}</div>`:""}`;}
-function route(){const h=(location.hash||"#overview").slice(1);const [r,arg]=h.split("/");return{r:!r?"overview":r==="borderline"?"inbox":r==="screened"&&arg==="businesses"?"screened-startups":r,arg};}
+function route(){const h=(location.hash||"#today").slice(1);const [r,arg]=h.split("/");return{r:!r?"today":r==="borderline"?"inbox":r==="screened"&&arg==="businesses"?"screened-startups":r,arg};}
 const SPLIT=window.matchMedia("(min-width:901px)");SPLIT.addEventListener("change",()=>paint());
 const splitMode=(r,arg)=>(r==="inbox"||(r==="startups"&&arg!=="map"))&&SPLIT.matches;
 function paint(){if(!loaded)return;const {r,arg}=route();const view=document.getElementById("view");const split=splitMode(r,arg);
@@ -1789,7 +1891,7 @@ function paint(){if(!loaded)return;const {r,arg}=route();const view=document.get
   view.className=r==="job"||r==="active"||(r==="closed"&&arg)||inTab?"":(r==="map"||(r==="startups"&&arg==="map"))?"mapsection":split?"splitview":"section";
   const lc=view.querySelector(".lcol");const ls=lc?lc.scrollTop:0;
   unmountMaps();
-  view.innerHTML=r==="board"?viewBoard(arg):r==="map"?viewMap():r==="network"?viewNetwork(arg):r==="todos"?viewTodos(arg):r==="startups"?viewStartups(arg):r==="watchlist"?viewWatchlist(arg):r==="screened"?viewScreened(arg):r==="screened-startups"?viewScreened("businesses",arg):r==="job"?viewDetail(arg):r==="active"?viewActive(arg):r==="closed"?viewClosed(arg):r==="overview"?viewOverview():split?viewSplit(r,arg):viewInbox();
+  view.innerHTML=r==="board"?viewBoard(arg):r==="map"?viewMap():r==="network"?viewNetwork(arg):r==="todos"?viewTodos(arg):r==="today"?viewToday(arg):r==="startups"?viewStartups(arg):r==="watchlist"?viewWatchlist(arg):r==="screened"?viewScreened(arg):r==="screened-startups"?viewScreened("businesses",arg):r==="job"?viewDetail(arg):r==="active"?viewActive(arg):r==="closed"?viewClosed(arg):r==="overview"?viewOverview():split?viewSplit(r,arg):viewInbox();
   mountMaps();
   const lc2=view.querySelector(".lcol");if(lc2)lc2.scrollTop=ls;
   view.querySelectorAll("textarea").forEach(autoGrow);}
@@ -1797,7 +1899,7 @@ let renderT=null;function render(){clearTimeout(renderT);renderT=setTimeout(()=>
 let pending=false;
 /* Picking another person in the Network split keeps the list where it was; every other route starts at the top. */
 let lastR=route().r;
-window.addEventListener("hashchange",()=>{const r=route().r;if(!((r==="network"||r==="todos"||r==="startups")&&lastR===r&&SPLIT.matches))window.scrollTo(0,0);lastR=r;paint();});
+window.addEventListener("hashchange",()=>{const r=route().r;if(!((r==="network"||r==="todos"||r==="today"||r==="startups")&&lastR===r&&SPLIT.matches))window.scrollTo(0,0);lastR=r;paint();});
 function autoGrow(t){t.style.height="auto";t.style.height=Math.max(34,t.scrollHeight)+"px";}
 
 /* ---------- interactions ---------- */
@@ -1829,7 +1931,7 @@ view.addEventListener("click",async e=>{const t=e.target.closest("[data-edit],[d
   if(!await writeVerdict(id,{v:""}))return;if(OPPS[id])await closeOpp(id);EDIT.delete(id);delete draft[id];
   toast(isInbox(byId[id])?"Back in the Inbox; your note is kept":"Verdict cleared. It scores under the inbox floor, so it will not show in the Inbox");render();});
 view.addEventListener("click",async e=>{const d=e.target.closest('a[href="#decide"]');if(d){e.preventDefault();const el=document.getElementById("decide");if(el)el.scrollIntoView({behavior:"smooth",block:"start"});return;}
-  const t=e.target.closest("[data-v],[data-quickv],[data-cal],[data-flag],[data-x],[data-open],[data-acc],[data-submit],[data-sel],[data-mapf],[data-pin],[data-mapzoom],[data-netlens],[data-addperson],[data-cdone],[data-snooze],[data-cdonego],[data-nsel],[data-link],[data-unlink],[data-tsel],[data-tdone],[data-tsnooze],[data-tfold],[data-tundo],[data-tsync],[data-tdiscard],[data-wtab],[data-samples],[data-scrf],[data-confirmrm]");if(!t)return;
+  const t=e.target.closest("[data-v],[data-quickv],[data-cal],[data-flag],[data-x],[data-open],[data-acc],[data-submit],[data-sel],[data-mapf],[data-pin],[data-mapzoom],[data-netlens],[data-addperson],[data-cdone],[data-snooze],[data-cdonego],[data-nsel],[data-link],[data-unlink],[data-tsel],[data-tdone],[data-tsnooze],[data-tfold],[data-tundo],[data-tsync],[data-tdiscard],[data-tmove],[data-plan],[data-wtab],[data-samples],[data-scrf],[data-confirmrm]");if(!t)return;
   if(t.matches("[data-confirmrm]")){e.preventDefault();e.stopPropagation();t.disabled=true;await confirmRemoval(t.dataset.confirmrm);return;}
   if(t.dataset.samples){setSamples(!SAMPLES_ON);paint();return;}
   if(t.dataset.scrf){SCR_F=t.dataset.scrf;paint();return;}
@@ -1840,7 +1942,9 @@ view.addEventListener("click",async e=>{const d=e.target.closest('a[href="#decid
   if(t.dataset.tundo){unstage(t.dataset.tundo);toast("Taken back");render();return;}
   if(t.dataset.tsync){await todoSync();return;}
   if(t.dataset.tdiscard){const n=pendN();PEND={};savePend();toast(`${n} staged change${n===1?"":"s"} discarded`);render();return;}
-  if(t.dataset.tsel){const h="#todos/"+t.dataset.tsel;if(location.hash!==h)location.hash=h;else if(!SPLIT.matches)location.hash="#todos";return;}
+  if(t.dataset.tsel){const h=tdBase()+"/"+t.dataset.tsel;if(location.hash!==h)location.hash=h;else if(!SPLIT.matches)location.hash=tdBase();return;}
+  if(t.dataset.tmove){todayMove(t.dataset.tmove,t.dataset.mv);return;}
+  if(t.dataset.plan){planAnswer(t.dataset.plan,t.dataset.ok==="1");return;}
   if(t.dataset.link||t.dataset.unlink){const id=t.dataset.link||t.dataset.unlink;t.disabled=true;
     const o=await oppWrite({action:t.dataset.link?"link":"unlink",id,kind:t.dataset.kind,target:t.dataset.target});
     if(o)render();else t.disabled=false;return;}

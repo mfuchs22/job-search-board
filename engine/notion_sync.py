@@ -6,7 +6,7 @@ files the board's mirrors are pushed from:
 
     <vault>/network/contacts.json       {"asof", "people": [...]}      (network_notion.py owns the person shape)
     <vault>/network/opportunities.json  {"asof", "opps": [{"id", "page", "url", "stage", "outcome", "next",
-                                         "next_date", "hp", "hp_people", "flag", "company", "company_name",
+                                         "next_date", "hp", "hp_people", "flag", "lane", "ball", "company", "company_name",
                                          "people": [ids], "meetings": [ids], "tasks": [ids], "edited"}]}
     <vault>/network/meetings.json       {"asof", "meetings": [{"id", "url", "name", "date", "type", "summary",
                                          "actions", "status", "people": [ids], "companies": [ids], "opps": [ids]}]}
@@ -37,6 +37,8 @@ STAGE = {"Shortlist": "shortlist", "Researching": "researching", "Outreach": "ou
 OUTCOME = {"No response": "no_response", "Rejected": "rejected", "Withdrew": "withdrew", "Accepted": "accepted",
            "Posting removed": "posting_removed"}
 HP = {"Warm active": "warm active", "Warm reachable": "warm reachable", "Cold": "cold", "Unchecked": None}
+LANE = {"Active": "active", "Bench": "bench", "Paused": "paused"}   # focus, separate from stage (2026-10-20)
+BALL = {"the owner": "owner", "Claude": "claude", "Them": "them"}         # whose move the next step is
 
 
 def opps_file(p):
@@ -60,6 +62,7 @@ def opportunity(page, company_names):
             "stage": STAGE.get(g("Stage")), "outcome": OUTCOME.get(g("Outcome")),
             "next": g("Next Step"), "next_date": g("Next Step Date"),
             "hp": HP.get(g("Human Path")), "hp_people": g("Human Path People"), "flag": bool(g("Flag")),
+            "lane": LANE.get(g("Lane")), "ball": BALL.get(g("Ball")),
             "company": co[0] if co else None, "company_name": company_names.get(co[0]) if co else None,
             "people": g("People") or [], "meetings": g("Meetings") or [], "tasks": g("Tasks") or [],
             "edited": page.get("last_edited_time")}

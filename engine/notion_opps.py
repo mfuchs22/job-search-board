@@ -22,6 +22,7 @@ from datetime import date
 import notion
 from common import OUTCOMES, STAGES, load_config, load_jobs, norm, paths, same_company
 from notion import plain, prop, query_all
+from render_dashboard import plan_record
 
 STAGE_NAME = {s: s.capitalize() for s in STAGES}
 OUTCOME_NAME = {o: o.replace("_", " ").capitalize() for o in OUTCOMES}
@@ -89,8 +90,9 @@ def load_world(cfg, tok):
 OWN_HEADING = "From the job board"
 
 
-def blocks_for(j):
-    """The page body: what the board shows about the role, under a heading this module owns."""
+def blocks_for(j, plan=None):
+    """The page body: what the board shows about the role, under a heading this module owns. `plan` is
+    render_dashboard.plan_record (campaign.md's ## Plan and the owner's answer), shown first when there is one."""
     card = j.get("card") or {}
     hp = j.get("human_path") or {}
     o = j.get("office") or {}
@@ -107,6 +109,14 @@ def blocks_for(j):
                          j.get("source") and j["source"] != "hand" and f"Source: {j['source']}",
                          j.get("date_first_seen") and f"First seen {j['date_first_seen']}"] if x]
     out += [bullet(f) for f in facts]
+    if plan:
+        out.append(head(f"Plan, version {plan['version']}" + (f" ({plan['date']})" if plan["date"] else "") + f": {plan['status']}"))
+        for label, k in (("Route", "route"), ("Why", "why"), ("People", "people"), ("Materials", "materials"),
+                         ("Decision for the owner", "decision")):
+            if plan.get(k):
+                out.append(bullet(f"{label}: {plan[k]}"))
+        if plan["input"]:
+            out.append(para("the owner's answer: " + " ".join(plan["input"])))
     if card.get("job"):
         out.append(head("What the role is"))
         out += [bullet(b) for b in card["job"]]
@@ -176,7 +186,7 @@ def fill(a):
         j = pursue.get(jid)
         if not j:
             continue
-        blocks = blocks_for(j)
+        blocks = blocks_for(j, plan_record(p.vault, j.get("job_file")))
         mine = own_blocks(tok, pg["id"])
         if block_text(mine) == block_text(blocks):   # nothing changed: leave Notion alone (the build runs this daily)
             same += 1

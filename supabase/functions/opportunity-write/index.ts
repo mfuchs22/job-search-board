@@ -8,7 +8,7 @@
 //
 //   POST {action: "promote", id, fields: {title, company, score?, location?, url?, verdict_date?, flag?}}
 //        the verdict just became Pursue: create the page (Stage Shortlist) and link or create its company
-//   POST {action: "update",  id, fields: {stage?, outcome?, next?, next_date?, hp?, hp_people?, flag?}}
+//   POST {action: "update",  id, fields: {stage?, outcome?, next?, next_date?, hp?, hp_people?, flag?, lane?, ball?}}
 //   POST {action: "close",   id, fields: {outcome?}}          no longer a Pursue: Stage Closed, Outcome Withdrew
 //   POST {action: "link" | "unlink", id, kind: "person"|"meeting"|"task"|"company", target: "<notion page id>"}
 //
@@ -24,7 +24,7 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
-// Keep these maps in step with STAGE / OUTCOME / HP in engine/notion_sync.py.
+// Keep these maps in step with STAGE / OUTCOME / HP / LANE / BALL in engine/notion_sync.py.
 const STAGE: Record<string, string> = {
   shortlist: "Shortlist", researching: "Researching", outreach: "Outreach", applied: "Applied",
   interviewing: "Interviewing", offer: "Offer", closed: "Closed",
@@ -36,6 +36,9 @@ const OUTCOME: Record<string, string> = {
 const HP: Record<string, string> = {
   "warm active": "Warm active", "warm reachable": "Warm reachable", cold: "Cold", unchecked: "Unchecked",
 };
+// Lane is focus, not progress: Active (the cap of 8), Bench or Paused; Ball is whose move the next step is (2026-10-20).
+const LANE: Record<string, string> = { active: "Active", bench: "Bench", paused: "Paused" };
+const BALL: Record<string, string> = { owner: "the owner", claude: "Claude", them: "Them" };
 const REL: Record<string, string> = { person: "People", meeting: "Meetings", task: "Tasks", company: "Company" };
 
 const reply = (body: unknown, status = 200) =>
@@ -84,6 +87,7 @@ function normalize(page: any, companyName: string | null = null) {
     next: g("Next Step"), next_date: g("Next Step Date"),
     hp: g("Human Path") === "Unchecked" ? null : unflip(HP, g("Human Path")),
     hp_people: g("Human Path People"), flag: !!g("Flag"),
+    lane: unflip(LANE, g("Lane")), ball: unflip(BALL, g("Ball")),
     company: co[0] ?? null, company_name: companyName,
     people: g("People") ?? [], meetings: g("Meetings") ?? [], tasks: g("Tasks") ?? [],
     edited: page.last_edited_time,
@@ -172,6 +176,8 @@ Deno.serve(async (req) => {
       if (f.hp !== undefined) properties["Human Path"] = { select: { name: flip(HP, f.hp) ?? "Unchecked" } };
       if (f.hp_people !== undefined) properties["Human Path People"] = { rich_text: rich(String(f.hp_people ?? "")) };
       if (f.flag !== undefined) properties["Flag"] = { checkbox: !!f.flag };
+      if (f.lane !== undefined) properties["Lane"] = { select: flip(LANE, f.lane) ? { name: flip(LANE, f.lane) } : null };
+      if (f.ball !== undefined) properties["Ball"] = { select: flip(BALL, f.ball) ? { name: flip(BALL, f.ball) } : null };
       if (!Object.keys(properties).length) throw new Error("nothing to update");
       page = await notion(`/pages/${page.id}`, "PATCH", { properties });
     } else if (action === "link" || action === "unlink") {
