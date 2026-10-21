@@ -633,6 +633,8 @@ button.td-undo{font-size:11.5px;padding:1px 7px;color:var(--amber-text);border-c
 .pe-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:14px}
 .pe-card{cursor:pointer}
 .pe-last{font-size:12px;color:var(--muted);margin-top:6px}
+.pe-rule{font-size:var(--fs-sm);margin-top:8px;padding:6px 8px;border-radius:6px;background:var(--amber-soft);color:var(--amber-text)}
+.pe-roles{font-size:var(--fs-sm);margin-top:8px;line-height:1.5}
 .pp-bench summary{cursor:pointer;font-weight:600;padding:6px 0;margin-bottom:8px}
 .pp-bench summary .mono{color:var(--muted);font-weight:400}
 .op-head{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:6px 0 14px}
@@ -2098,13 +2100,38 @@ function personCard(c,on){const last=c.last_date?`${esc(c.last_type||"Touch")} $
   return`<div class="nw-card pe-card k-${netKind(c)}${on?" on":""}" data-nsel="${esc(c.id)}"><div class="nw-r1"><b>${esc(c.name||"(no name)")}</b>${netDue(c)}</div>
     ${c.role||c.company?`<div class="nw-co">${esc([c.role,c.company].filter(Boolean).join(" · "))}</div>`:""}${c.hook?`<div class="nw-hook">${esc(c.hook)}</div>`:""}
     <div class="nw-act">${c.next_type&&!new RegExp("^"+c.next_type+"\\b","i").test(c.next_action||"")?`<b>${esc(c.next_type)}:</b> `:""}${esc(c.next_action||"No next step yet")}</div>${last?`<div class="pe-last">Last: ${last}</div>`:""}</div>`;}
-function viewPeople(arg){const G=peopleGroups();const all=CONTACTS;
+/* Recruiters (the owner, 2026-10-21: "should they just be people, or ... a separate tab? I have a list of recruiters to reach
+   out to, so I feel like they are sort of targets"): People with a switch, not a tab. A recruiter is How Connected =
+   Recruiter. The view groups them by where the relationship stands (working with you, to reach, dormant) and shows
+   each one's roles: their Job board roles in Notion, and every role whose source names their firm (recruiter:<firm>).
+   A standing rule they set ("check with me before applying ...") is pulled from the next step or notes and shown. */
+let PEOPLE_LENS="all";try{PEOPLE_LENS=localStorage.getItem("board.peopleLens")||"all";}catch(e){}
+const isRecruiter=c=>/recruit/i.test(c.how||"");
+const firmSlug=s=>String(s||"").split("(")[0].toLowerCase().replace(/,?\s*(llc|inc|ltd)\.?\s*$/,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+function recruiterRoles(c){const f=firmSlug(c.company);
+  return JOBS.filter(j=>(c.roles||[]).includes(j.id)||(f&&/^recruiter:/.test(j.source||"")&&j.source.slice(10)===f));}
+const recruiterRule=c=>{const m=[c.next_action,c.notes].map(x=>String(x||"")).join(" ").split(/(?<=[.;])\s+/).find(x=>/check with|before (applying|any submission)|exclusive/i.test(x));return m?m.trim():"";};
+function recruiterExtra(c){const R=recruiterRoles(c),rule=recruiterRule(c);
+  return`${rule?`<div class="pe-rule"><b>Rule:</b> ${esc(rule)}</div>`:""}${R.length?`<div class="pe-roles">${R.map(j=>`<a href="#pipeline/${esc(j.id)}">${esc(j.company)}: ${esc(j.title)}</a> <span class="hint">${esc(pipeStage(j)?pipeName(pipeStage(j)):verdictOf(j)?cap(verdictOf(j)):"Inbox")}</span>`).join("<br>")}</div>`:""}`;}
+const RECRUITER_GROUPS=[["working","Working with you","In touch now"],["reach","To reach","Recruiters you have not contacted yet"],["dormant","Dormant","Quiet until a search fits"]];
+function viewRecruiters(arg){const all=CONTACTS.filter(isRecruiter).sort(netUrgent);
+  const G={working:all.filter(c=>c.status!=="Dormant"&&c.status!=="Not contacted"&&c.status),reach:all.filter(c=>c.status==="Not contacted"||!c.status).sort((a,b)=>(b.priority==="High")-(a.priority==="High")||netUrgent(a,b)),dormant:all.filter(c=>c.status==="Dormant")};
+  const pick=all.find(c=>c.id===arg)||(SPLIT.matches?all[0]||null:null);
+  const card=c=>personCard(c,pick&&c.id===pick.id).replace(/<\/div>$/,recruiterExtra(c)+"</div>");
+  const body=all.length?RECRUITER_GROUPS.map(([k,l,h])=>G[k].length?`<div class="nw-sh">${esc(l)} <span>${G[k].length} · ${esc(h)}</span></div><div class="pe-grid">${G[k].map(card).join("")}</div>`:"").join("")
+    :'<div class="emptybig"><b>No recruiters yet</b><span>A person whose How Connected is Recruiter in the Notion Network shows here.</span></div>';
+  return{pick,body,n:all.length,head:`${all.length} recruiters · ${G.working.length} working with you · ${G.reach.length} to reach`};}
+const peopleLens=nAll=>`<div class="mapf" style="margin-bottom:10px">${[["all","Everyone",nAll],["recruiters","Recruiters",CONTACTS.filter(isRecruiter).length]].map(([k,l,n])=>`<button class="pill${PEOPLE_LENS===k?" on":""}" data-plens="${k}">${l} <span class="mono">${n}</span></button>`).join("")}</div>`;
+function viewPeople(arg){if(PEOPLE_LENS==="recruiters"){const r=viewRecruiters(arg);
+    return`<div class="nw${arg&&r.pick?" has-sel":""}"><div class="nw-main"><div class="sh"><h2>People <span>${esc(r.head)}</span></h2><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="hint">Notion is the home; edits here save there</span><button data-addperson="1">${addOpen?"Close":"Add person"}</button></div></div>
+      ${peopleLens(CONTACTS.length)}${netForm()}${r.body}</div>${r.pick?`<aside class="nw-pane">${netPane(r.pick)}</aside>`:""}</div>`;}
+const G=peopleGroups();const all=CONTACTS;
   const pick=all.find(c=>c.id===arg)||(SPLIT.matches?PEOPLE_GROUPS.map(g=>G[g[0]][0]).find(Boolean)||null:null);
   const sec=([k,l,h])=>G[k].length?`<div class="nw-sh">${esc(l)} <span>${G[k].length} · ${esc(h)}</span></div><div class="pe-grid">${G[k].map(c=>personCard(c,pick&&c.id===pick.id)).join("")}</div>`:"";
   const body=all.length?PEOPLE_GROUPS.map(sec).join("")+(G.rest.length?`<details class="pp-bench"><summary>Everyone else <span class="mono">${G.rest.length}</span> <span class="hint">No date, later, or not yet contacted</span></summary><div class="pe-grid">${G.rest.map(c=>personCard(c,pick&&c.id===pick.id)).join("")}</div></details>`:"")
     :'<div class="emptybig"><b>No contacts on the board yet</b><span>They come from the Notion Network database on the next refresh, or say "sync board".</span></div>';
   return`<div class="nw${arg&&pick?" has-sel":""}"><div class="nw-main"><div class="sh"><h2>People <span>${all.length} · ${G.intro.length} intros · ${G.booked.length} booked · ${G.due.length} due</span></h2><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="hint">Notion is the home; edits here save there</span><button data-addperson="1">${addOpen?"Close":"Add person"}</button></div></div>
-    ${netForm()}${body}</div>${pick?`<aside class="nw-pane">${netPane(pick)}</aside>`:""}</div>`;}
+    ${peopleLens(all.length)}${netForm()}${body}</div>${pick?`<aside class="nw-pane">${netPane(pick)}</aside>`:""}</div>`;}
 function route(){const h=(location.hash||"#today").slice(1);const [r,arg]=h.split("/");if(r==="network")return{r:"people",arg};if(r==="board"||r==="active"||r==="closed")return{r:"pipeline",arg:arg||(r==="board"?"research":r==="closed"?"closed":"inprocess")};if(r==="job"&&arg&&byId[arg]&&verdictOf(byId[arg])==="pursue")return{r:"pipeline",arg};return{r:!r?"today":r==="borderline"?"inbox":r==="screened"&&arg==="businesses"?"screened-startups":r,arg};}
 const SPLIT=window.matchMedia("(min-width:901px)");SPLIT.addEventListener("change",()=>paint());
 const splitMode=(r,arg)=>(r==="inbox"||(r==="startups"&&arg!=="map"))&&SPLIT.matches;
@@ -2155,10 +2182,11 @@ view.addEventListener("click",async e=>{const t=e.target.closest("[data-edit],[d
   if(!await writeVerdict(id,{v:""}))return;if(OPPS[id])await closeOpp(id);EDIT.delete(id);delete draft[id];
   toast(isInbox(byId[id])?"Back in the Inbox; your note is kept":"Verdict cleared. It scores under the inbox floor, so it will not show in the Inbox");render();});
 view.addEventListener("click",async e=>{const d=e.target.closest('a[href="#decide"]');if(d){e.preventDefault();const el=document.getElementById("decide");if(el)el.scrollIntoView({behavior:"smooth",block:"start"});return;}
-  const t=e.target.closest("[data-v],[data-quickv],[data-cal],[data-flag],[data-x],[data-open],[data-acc],[data-submit],[data-sel],[data-mapf],[data-pin],[data-mapzoom],[data-netlens],[data-addperson],[data-cdone],[data-snooze],[data-cdonego],[data-nsel],[data-link],[data-unlink],[data-tsel],[data-tdone],[data-tsnooze],[data-tfold],[data-tundo],[data-tsync],[data-tdiscard],[data-tmove],[data-tkeep],[data-tslotquiet],[data-plan],[data-wtab],[data-otab],[data-samples],[data-scrf],[data-confirmrm]");if(!t)return;
+  const t=e.target.closest("[data-v],[data-quickv],[data-cal],[data-flag],[data-x],[data-open],[data-acc],[data-submit],[data-sel],[data-mapf],[data-pin],[data-mapzoom],[data-netlens],[data-addperson],[data-cdone],[data-snooze],[data-cdonego],[data-nsel],[data-link],[data-unlink],[data-tsel],[data-tdone],[data-tsnooze],[data-tfold],[data-tundo],[data-tsync],[data-tdiscard],[data-tmove],[data-tkeep],[data-tslotquiet],[data-plan],[data-wtab],[data-otab],[data-plens],[data-samples],[data-scrf],[data-confirmrm]");if(!t)return;
   if(t.matches("[data-confirmrm]")){e.preventDefault();e.stopPropagation();t.disabled=true;await confirmRemoval(t.dataset.confirmrm);return;}
   if(t.dataset.samples){setSamples(!SAMPLES_ON);paint();return;}
   if(t.dataset.scrf){SCR_F=t.dataset.scrf;paint();return;}
+  if(t.dataset.plens){PEOPLE_LENS=t.dataset.plens;try{localStorage.setItem("board.peopleLens",PEOPLE_LENS);}catch(x){}paint();return;}
   if(t.dataset.otab){OPP_TAB=t.dataset.otab;try{localStorage.setItem("board.oppTab",OPP_TAB);}catch(x){}paint();return;}
   if(t.dataset.wtab){WR_TAB=t.dataset.wtab;try{localStorage.setItem("board.inplayTab",WR_TAB);}catch(x){}paint();return;}
   if(t.dataset.tfold){const k=t.dataset.tfold;if(tdFold.has(k))tdFold.delete(k);else tdFold.add(k);paint();return;}

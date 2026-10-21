@@ -941,6 +941,15 @@ def board_v3(data):
         "hook": "Intro from Sam Delgado (email): they ran the claims automation program together at his last firm",
         "notes": "", "linkedin": "", "touches": [{"date": gen, "type": "Email", "note": "Sam's intro email"}], "last_date": gen, "last_type": "Email",
         "last_note": "Sam's intro email", "next_date": gen, "next_type": "Email", "next_action": "Reply to the intro and book a time", "roles": [], "url": "#"}})
+    # a recruiter to reach and a standing rule from one already working the search (People, Recruiters)
+    T["contacts"].append({"id": "c-morgan-reyes", "payload": {"id": "c-morgan-reyes", "name": "Morgan Reyes", "company": "Northbridge Search", "role": "Partner, AI and digital practice",
+        "how": "Recruiter", "status": "Not contacted", "priority": "High", "hook": "Places AI and transformation leaders at PE-backed firms in Boston",
+        "notes": "", "linkedin": "", "touches": [], "last_date": None, "last_type": None, "last_note": None, "next_date": None, "next_type": "Email",
+        "next_action": "Introduce yourself with the two-line summary and the target list", "roles": [], "url": "#"}})
+    for c in T["contacts"]:
+        if c["id"] == "c-dana-okafor":
+            c["payload"]["notes"] = (c["payload"].get("notes") or "") + " Standing: check with Dana before applying to any investment-firm posting."
+
     T["verdicts"] = list(verd.values())
     T["opportunities"] = list(opps.values())
     T["jobs"] = [dict(r, payload=jobs[r["id"]]) for r in T["jobs"]]

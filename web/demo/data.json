@@ -6042,7 +6042,7 @@
 "status": "In conversation",
 "priority": "High",
 "hook": "Runs the Granite Peak process; placed two CIOs the owner knows",
-"notes": "Straight talker. Prefers a call to email. Sends the JD within the hour.",
+"notes": "Straight talker. Prefers a call to email. Sends the JD within the hour. Standing: check with Dana before applying to any investment-firm posting.",
 "linkedin": "https://www.linkedin.com/in/example-dana-okafor",
 "touches": [
 {
@@ -6461,6 +6461,30 @@
 "next_date": "2026-10-08",
 "next_type": "Email",
 "next_action": "Reply to the intro and book a time",
+"roles": [],
+"url": "#"
+}
+},
+{
+"id": "c-morgan-reyes",
+"payload": {
+"id": "c-morgan-reyes",
+"name": "Morgan Reyes",
+"company": "Northbridge Search",
+"role": "Partner, AI and digital practice",
+"how": "Recruiter",
+"status": "Not contacted",
+"priority": "High",
+"hook": "Places AI and transformation leaders at PE-backed firms in Boston",
+"notes": "",
+"linkedin": "",
+"touches": [],
+"last_date": null,
+"last_type": null,
+"last_note": null,
+"next_date": null,
+"next_type": "Email",
+"next_action": "Introduce yourself with the two-line summary and the target list",
 "roles": [],
 "url": "#"
 }
