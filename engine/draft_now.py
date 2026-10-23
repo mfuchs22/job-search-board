@@ -12,13 +12,19 @@ pursue-followup playbook for those roles alone: the drafts his answer calls for,
 board push. The run itself sets the role's next step to "Review drafts" with the ball on the owner, which clears the
 card's "Waiting on Claude" on the board. One run at a time; a run older than RUN_MINUTES no longer blocks the next.
 Nothing is sent: the playbook's guardrails hold (Gmail drafts only).
+
+The same kick drafts a missing brief on demand (the owner, 2026-10-23, on Anna's card: "there's no message drafted... The
+message should be drafted. Then I'll rework it, but give it a shot."). A brief came only from the 01:30 run, so a touch
+dated during the day opened an empty draft box. Now opening such an item on the board stamps `draft_asked` on its
+today_marks row, and when no plan run is owed kick() starts `claude -p` to write those briefs, draft included, and push
+them. A key is asked once per stamp (.draft-now/briefs-asked.json); the page stamps again after RUN_MINUTES.
 """
 import json
 import os
 import shutil
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -73,10 +79,76 @@ def prompt(rows, today):
     )
 
 
+def brief_prompt(asks, today):
+    names = "; ".join(f"{a['key']} ({a.get('title') or 'no title'})" for a in asks)
+    return (
+        "Read Tools/pursue-followup-prompt.md, and docs/brief.md in the job-search-agent folder. the owner just opened these "
+        f"items on the board's Today page and they have no brief, so the brief and its draft are owed now: {names}. Do "
+        "step 1 (sync). Then in the job-search-agent folder run `py engine/notion_sync.py` and `py engine/briefs.py owed "
+        "--cap 100 --out briefs-owed.json`, and do step 4b for these keys only. A key not in that list still gets its "
+        "brief, from the same sources, with `**For:**` set to the item's text as the page shows it (for a person, "
+        "`briefs._person_text` of the Notion Network row). Every brief carries a full first draft in the owner's voice in its "
+        "## Draft block; never leave the draft empty, he will rework it. Skip every other step and row. Then step 8's "
+        f"commit, with the message \"Briefs on demand {today}: {', '.join(a.get('title') or a['key'] for a in asks)}\", "
+        "and then in the job-search-agent folder run `py engine/push_board.py` so the briefs reach the board. Nothing is "
+        "ever sent. Your working directory is Personal-OS; the prompt was written on Windows, so read any "
+        "C:\\Users\\matth\\ path as your home folder with forward slashes. `py` works here."
+    )
+
+
+def launch(cfg, p, text, keys, now):
+    f = state_file(p)
+    f.parent.mkdir(parents=True, exist_ok=True)
+    logs = Path.home() / "Library" / "Logs" / "fleet"
+    log = (logs if logs.exists() else f.parent) / "draft-now.log"
+    with open(log, "a", encoding="utf-8") as out:
+        out.write(f"\n=== {now.isoformat(timespec='seconds')} {', '.join(keys)}\n")
+        out.flush()
+        proc = subprocess.Popen([claude_bin(cfg), "-p", text, "--permission-mode", "auto",
+                                 "--permission-prompts", "none"], cwd=str(p.personal_os), stdout=out,
+                                stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, start_new_session=True)
+    f.write_text(json.dumps({"pid": proc.pid, "jobs": keys, "started": now.isoformat(timespec="seconds"),
+                             "log": str(log)}, indent=1) + "\n", encoding="utf-8")
+    return proc.pid
+
+
+def kick_briefs(cfg, p):
+    """Items opened on the board with no brief: start one run that writes them. Returns a line, or None."""
+    now = datetime.now(timezone.utc)
+    since = (now - timedelta(days=1)).isoformat(timespec="seconds")
+    asks = sb.select("today_marks", {"select": "key,title,draft_asked", "draft_asked": f"gte.{since}",
+                                     "done_at": "is.null"}, cfg=cfg)
+    f = state_file(p).parent / "briefs-asked.json"
+    tried = json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
+    asks = [a for a in asks if tried.get(a["key"]) != a["draft_asked"]]
+    if not asks:
+        return None
+    meta = sb.select("board_meta", {"select": "payload", "key": "eq.briefs"}, cfg=cfg)
+    have = (meta[0].get("payload") if meta else None) or {}
+    asks = [a for a in asks if a["key"] not in have]
+    if not asks:
+        return None
+    subprocess.run(["git", "pull", "--rebase", "--autostash", "origin", "master"], cwd=str(p.personal_os),
+                   capture_output=True, text=True, timeout=300)
+    today = now.astimezone(ET).date().isoformat()
+    pid = launch(cfg, p, brief_prompt(asks, today), [a["key"] for a in asks], now)
+    tried.update({a["key"]: a["draft_asked"] for a in asks})
+    f.write_text(json.dumps(tried, indent=1) + "\n", encoding="utf-8")
+    return f"drafting briefs now for {', '.join(a.get('title') or a['key'] for a in asks)} (pid {pid})"
+
+
 def kick(cfg, p):
-    """Fold new plan answers; start one drafting run if any answered role wants drafts. Returns a line, or None."""
+    """Fold new plan answers and draft for them; else draft any brief asked for on the board. A line, or None."""
     if busy(p):
         return None
+    line = kick_plans(cfg, p)
+    if line and line.startswith("drafting now"):
+        return line
+    return kick_briefs(cfg, p) or line
+
+
+def kick_plans(cfg, p):
+    """Fold new plan answers; start one drafting run if any answered role wants drafts. Returns a line, or None."""
     if not sb.select("plan_inputs", {"select": "id", "folded_at": "is.null", "limit": "1"}, cfg=cfg):
         return None
     subprocess.run(["git", "pull", "--rebase", "--autostash", "origin", "master"], cwd=str(p.personal_os),
@@ -100,19 +172,8 @@ def kick(cfg, p):
     clock = now.astimezone(ET).strftime("%I:%M %p").lstrip("0")
     for r in rows:
         set_next(cfg, r["id"], f"Claude is drafting from your plan answer (started {clock})", today, "claude")
-    f = state_file(p)
-    f.parent.mkdir(parents=True, exist_ok=True)
-    logs = Path.home() / "Library" / "Logs" / "fleet"
-    log = (logs if logs.exists() else f.parent) / "draft-now.log"
-    with open(log, "a", encoding="utf-8") as out:
-        out.write(f"\n=== {now.isoformat(timespec='seconds')} {', '.join(r['id'] for r in rows)}\n")
-        out.flush()
-        proc = subprocess.Popen([claude_bin(cfg), "-p", prompt(rows, today), "--permission-mode", "auto",
-                                 "--permission-prompts", "none"], cwd=str(p.personal_os), stdout=out,
-                                stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, start_new_session=True)
-    f.write_text(json.dumps({"pid": proc.pid, "jobs": [r["id"] for r in rows], "started": now.isoformat(timespec="seconds"),
-                             "log": str(log)}, indent=1) + "\n", encoding="utf-8")
-    return f"drafting now for {', '.join(r['company'] for r in rows)} (pid {proc.pid})"
+    pid = launch(cfg, p, prompt(rows, today), [r["id"] for r in rows], now)
+    return f"drafting now for {', '.join(r['company'] for r in rows)} (pid {pid})"
 
 
 def main():
