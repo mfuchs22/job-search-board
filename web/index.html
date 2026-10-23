@@ -1472,7 +1472,7 @@ async function todoSync(){if(tdSyncing)return;const keys=Object.keys(PEND);if(!k
    folded. Quick moves on a role: Sent and Applied (stage, Ball them, a follow-up at 5 or 10 business days, the owner's
    numbers), Promote under the cap of 8, Bench, Pause, Close. Phone first: the row opens a drawer with the moves. */
 const ACTIVE_CAP=8;
-const tdBase=()=>route().r==="today"?"#today":"#todos";
+const tdBase=()=>["today","brief"].includes(route().r)?"#today":"#todos";
 const bizDays=n=>{const d=new Date();let k=0;while(k<n){d.setDate(d.getDate()+1);const w=d.getDay();if(w&&w<6)k++;}return d.toLocaleDateString("en-CA");};
 const laneOf=id=>(OPPS[id]||{}).lane||"";
 const early=j=>stageRank(stageOf(j))<stageRank("applied");
@@ -1532,6 +1532,8 @@ function defaultOpts(r){if(r.j){const p=r.j.plan;return(p.options||[]).length?p.
   if(i.dec==="bench")return[opt("A","Promote to Active","Active has room for it","promote",1),opt("B","Keep on the Bench","Review again in three weeks","next:Bench review|21"),opt("C","Close","Not worth a slot","close")];
   if(i.dec==="gone")return[opt("A","Close: posting removed","The posting is down; closing keeps its notes, and a repost reopens it","gone",1),opt("B","Keep it","Check the posting again in two weeks","next:Posting gone, kept: check again|14")];
   if(i.dec==="slot")return[opt("A","Promote it","The best role on the Bench by fit","promote",1),opt("B","Not now","Hide this offer for a week","slotquiet")];
+  /* A message to send leads with drafting it (the owner, 2026-10-23: "of course, you should say, 'Draft the message'"). */
+  if(i.kind==="person"&&!isBooked(i.c))return[opt("A","Draft the message","Opens the draft with what the board knows; mark it done once it's sent","brief",1),opt("B","Next week","Not the day for it","snooze:7"),opt("C","Drop the date","Keep the person, lose the reminder","later")];
   if(i.kind==="person")return[opt("A","Do it today","Log the touch once it's done","done",1),opt("B","Next week","Not the day for it","snooze:7"),opt("C","Drop the date","Keep the person, lose the reminder","later")];
   return[opt("A","Do it today","Mark it done once it's out, then set the following step","done",1),opt("B","Tomorrow","Not today","snooze:1"),opt("C","Next week","Push it a week","snooze:7")];}
 const optsOf=r=>{const b=briefOf(r);const os=(b&&b.options.length?b.options:defaultOpts(r));return os.some(o=>o.rec)?os:os.map((o,x)=>Object.assign({},o,{rec:x===0}));};
@@ -1547,12 +1549,12 @@ function todayCard(r,n,last){const b=briefOf(r),key=rKey(r),k=esc(key);const os=
   const mv=`<span class="tc-mv">${n>1?`<button data-trank="${k}" data-dir="-1" aria-label="Move up" title="Move up">↑</button>`:""}${last?"":`<button data-trank="${k}" data-dir="1" aria-label="Move down" title="Move down">↓</button>`}${rk!=null?`<button data-trank="${k}" data-dir="off" title="Back to the computed order">Unpin</button>`:""}</span>`;
   const plan=r.j&&dm&&dm.act==="plan";
   const doing=dm?`<div class="tc-doing"><b>${plan?"Waiting on Claude":"Doing"}: ${esc((dm.choice?dm.choice+", ":"")+(dm.label||""))}</b><span>picked ${esc(fmtDate(dm.picked_at.slice(0,10)))}</span></div>
-   ${r.i&&r.i.kind==="person"&&doneOpen===r.i.id?netDoneForm(r.i.c).replace('<form class="doneform"','<form class="doneform" data-tstage="'+k+'"').replace("Save to Notion","Stage it"):""}
    <div class="td-btns tc-btns">${plan?`<span class="hint">Claude starts on the drafts within two minutes of Sync; the card clears when they are ready</span><button data-tfin="${k}">Mark done</button>`
      :`<button class="go" data-tfin="${k}">${b&&b.draft||r.i&&r.i.kind==="person"?"Done: I sent it":"Done"}</button>${b?`<a class="btnlink" href="#brief/${k}">Open brief</a>`:""}<button data-tunpick="${k}">Change pick</button>`}</div>`:"";
   return`<div class="td-card tc${dm?" doing":""}"><div class="tc-top"><span class="tc-k k-${esc(tag.toLowerCase())}">${esc(tag)}</span><span class="tc-why">${esc(rk!=null?"Your order · "+(r.why||""):(r.why||""))}</span>${mv}<span class="tc-n">${n}</span></div>
    <a class="tc-t" href="${esc(cardHref(r))}"><b>${esc(who)}</b>${sub?`<span>${esc(sub)}</span>`:""}</a><div class="tc-q">${esc(q)}</div>
    <div class="tc-opts">${os.map(o=>`<div class="tc-o${o.rec?" rec":""}${dm&&dm.choice===o.letter?" picked":""}"><span class="tc-l">${o.letter}</span><div><b>${esc(o.label)}</b>${o.rec?'<span class="tc-rec">Recommended</span>':""}${dm&&dm.choice===o.letter?'<span class="tc-rec">Your pick</span>':""} ${esc(o.why)}</div></div>`).join("")}</div>
+   ${r.i&&r.i.kind==="person"&&doneOpen===r.i.id&&!r.i.p?netDoneForm(r.i.c).replace('<form class="doneform"','<form class="doneform" data-tstage="'+k+'"').replace("Save to Notion","Stage it"):""}
    ${doing||other||`<div class="td-btns tc-btns">${os.map(o=>`<button${o.rec?' class="go"':""} data-topt="${k}" data-letter="${o.letter}">${o.letter}: ${esc(o.label)}</button>`).join("")}${r.j&&(r.j.plan.options||[]).length?`<button data-topt="${k}" data-letter="other">Something else</button>`:""}${b?"":`<span class="tc-nb">Brief comes tonight</span>`}</div>`}</div>`;}
 /* What an option's button does (docs/brief.md lists the acts). A new pick replaces an earlier one: no Undo first
    (the owner, 2026-10-23: "I basically can't reopen the brief unless I press undo"). On a plan card it records the pick. */
@@ -1562,7 +1564,7 @@ function todayOpt(key,letter){const r=rOfKey(key);if(!r)return;
   if(r.j){if(act==="other"){tdOther=key;paint();return;}const mv=["bench","pause","close"].includes(act)?act:undefined;
     unstage(key);stage(key,{version:r.j.plan.version,approve:true,choice:letter,note:o.label,mv,text:r.j.company});toast(`Staged: ${letter}, ${o.label}. Sync sends it`);render();return;}
   if(!TERMINAL(act)){markPick(key,r,o);
-    if(act==="done"||!b){toast(`Picked ${letter}. It stays at the top until you mark it done`);return;}
+    if(act==="done"||!briefFor(key)){toast(`Picked ${letter}. It stays at the top until you mark it done`);return;}
     if(location.hash!=="#brief/"+key)location.hash="#brief/"+key;else paint();return;}
   if(r.i.p)unstage(key);
   markPut([{key,choice:letter,label:o.label,act,title:cardTitle(r)}]);
@@ -1615,23 +1617,29 @@ function todayFinish(key){const r=rOfKey(key);if(!r)return;
   todoDone(key);}
 /* The draft on a brief is edited in place and kept on this device until it is sent. */
 const DRAFT_KEY=k=>"board.briefDraft."+k;
-function draftText(key){try{const v=localStorage.getItem(DRAFT_KEY(key));if(v!==null)return v;}catch(e){}return((BRIEFS[key]||{}).draft||{}).text||"";}
-function saveDraft(key,v){try{if(v===(((BRIEFS[key]||{}).draft||{}).text||""))localStorage.removeItem(DRAFT_KEY(key));else localStorage.setItem(DRAFT_KEY(key),v);}catch(e){}}
+/* An item with no brief yet still opens one: what the board knows, an empty draft, and Rework in Claude to write it. */
+function briefFor(key){if(BRIEFS[key])return BRIEFS[key];const r=rOfKey(key);if(!r||r.j)return null;const i=r.i,c=i.c||null;
+  const lines=[c&&c.hook?["Why now",c.hook]:null,c&&(c.role||c.company)?["Who",[c.role,c.company].filter(Boolean).join(", ")]:null,c&&c.last_date?["Last touch",fmtDate(c.last_date)+(c.last_note?": "+c.last_note:"")]:null,c&&c.notes?["Notes",c.notes]:null,i.j?["Role",i.j.company+": "+i.j.title]:null].filter(Boolean);
+  return{title:i.who,date:todayIso(),question:i.text,action:i.text,options:defaultOpts(r),synth:true,
+    draft:{channel:c?(c.next_type==="Email"?"Email":"LinkedIn message"):"",to:c&&c.linkedin||"",text:""},
+    html:`<p class="hint">No overnight brief for this one yet, so this is what the board knows. Write the note here, or start it in Claude.</p>${lines.map(([l,v])=>`<h3>${esc(l)}</h3><p>${esc(v)}</p>`).join("")}`};}
+function draftText(key){try{const v=localStorage.getItem(DRAFT_KEY(key));if(v!==null)return v;}catch(e){}return((briefFor(key)||{}).draft||{}).text||"";}
+function saveDraft(key,v){try{if(v===(((briefFor(key)||{}).draft||{}).text||""))localStorage.removeItem(DRAFT_KEY(key));else localStorage.setItem(DRAFT_KEY(key),v);}catch(e){}}
 const curDraft=key=>{const t=view.querySelector(`textarea[data-bdraft="${CSS.escape(key)}"]`);return t?t.value:draftText(key);};
-function claudeUrl(key){const b=BRIEFS[key]||{},d=b.draft||{},txt=curDraft(key);
+function claudeUrl(key){const b=briefFor(key)||{},d=b.draft||{},txt=curDraft(key);
   const ctx=[`Help me write this message. Keep my voice: plain, short, no em dashes.`,`What I'm doing: ${b.action||b.question||""}`,
     `Channel: ${d.channel||"not set"}${d.to?" to "+d.to:""}`,`Background:\n${(b.html||"").replace(/<li>/g,"- ").replace(/<\/(p|li|h2|h3)>/g,"\n").replace(/<[^>]+>/g,"").replace(/\n{3,}/g,"\n\n").trim()}`,
     txt?`My draft so far:\n${txt}`:"No draft yet: write the first one."].join("\n\n");
   return"https://claude.ai/new?q="+encodeURIComponent(ctx.slice(0,6000));}
-function gmailUrl(key){const d=(BRIEFS[key]||{}).draft||{};const to=/@/.test(d.to||"")?d.to:((d.email||""));
+function gmailUrl(key){const d=(briefFor(key)||{}).draft||{};const to=/@/.test(d.to||"")?d.to:((d.email||""));
   return`https://mail.google.com/mail/?view=cm&fs=1${to?"&to="+encodeURIComponent(to):""}${d.subject?"&su="+encodeURIComponent(d.subject):""}&body=${encodeURIComponent(curDraft(key))}`;}
 /* The people and pages behind a brief, for the links row. */
 function briefCtx(key){const [kind,id]=tdSplit(key);
   if(kind==="person"){const c=CONTACTS.find(x=>x.id===id)||{};return{c,links:[["People page","#people/"+id,0],c.url?["Notion",c.url,1]:null,c.linkedin?["LinkedIn",c.linkedin,1]:null].filter(Boolean)};}
   const j=byId[id]||{};const o=OPPS[id]||{};return{j,links:[["Role page","#job/"+id,0],j.url?["Posting",j.url,1]:null,o.url?["Notion",o.url,1]:null].filter(Boolean)};}
-function viewBrief(key){const b=BRIEFS[key];
+function viewBrief(key){const b=briefFor(key);
   if(!b)return`<div class="emptybig"><b>No brief for this one yet</b><span>The overnight run writes one for each item at the top of Today.</span><a href="#today">Back to Today</a></div>`;
-  const r=rOfKey(key);const cur=r&&briefOf(r);const d=b.draft;const ctx=briefCtx(key);const k=esc(key);
+  const r=rOfKey(key);const cur=b.synth?b:r&&briefOf(r);const d=b.draft;const ctx=briefCtx(key);const k=esc(key);
   const os=r&&cur?optsOf(r):b.options;const picked=pickOf(key);const st=r&&(r.j?PEND[key]:r.i&&r.i.p);
   const li=d&&/linkedin\.com/.test(d.to||"")?d.to:ctx.c&&ctx.c.linkedin||"";
   const sent=r&&cur&&!r.j?(r.i.kind==="role"?`<button class="go" data-tmove="${k}" data-mv="sent">I sent it</button>`:`<button class="go" data-tdone="${k}">I sent it</button>`):"";
