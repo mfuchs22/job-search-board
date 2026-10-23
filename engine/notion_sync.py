@@ -9,14 +9,16 @@ files the board's mirrors are pushed from:
                                          "next_date", "hp", "hp_people", "flag", "lane", "ball", "company", "company_name",
                                          "people": [ids], "meetings": [ids], "tasks": [ids], "edited", "lane_since"}]}
     <vault>/network/meetings.json       {"asof", "meetings": [{"id", "url", "name", "date", "type", "summary",
-                                         "actions", "status", "people": [ids], "companies": [ids], "opps": [ids]}]}
+                                         "actions", "status", "people": [ids], "companies": [ids], "opps": [ids], "edited"}]}
     <vault>/network/tasks.json         {"asof", "tasks": [{"id", "url", "title", "status", "area", "priority", "due",
                                          "plan_day", "waiting", "project", "notes", "opps": [ids], "meetings": [ids],
                                          "edited"}]}   (Area career and not Complete: what the To-dos tab shows)
 
 `id` on an opportunity is the board record id (Notion's "Job ID"), so the page joins a card to its Notion page.
 Meeting transcripts are not pulled. build.py calls refresh() before the push; push_board.py mirrors the four files
-into the Supabase `contacts`, `opportunities`, `meetings` and `tasks` tables. The board's edits go the other way
+into the Supabase `contacts`, `opportunities`, `meetings` and `tasks` tables on the 04:30 refresh and on Sync
+now, through notion_mirror.py. Between refreshes, supabase/functions/notion-hook writes the same row shape
+from a webhook or the 5-minute reconcile. It does not write these files. The board's edits go the other way
 through the network-write, opportunity-write and task-write edge functions, which write Notion first.
 
     py engine/notion_sync.py          pull and write the four files
@@ -69,11 +71,14 @@ def opportunity(page, company_names):
 
 
 def meeting(page):
+    """`edited` is the clock notion-hook compares to the row's updated_at. Keep in step with meeting()
+    in supabase/functions/_shared/notion_mirror.ts."""
     P = page.get("properties") or {}
     g = lambda k: plain(P.get(k))
     return {"id": page["id"], "url": page.get("url"), "name": g("Name"), "date": g("Date"), "type": g("Type"),
             "summary": g("Summary"), "actions": g("Action Items"), "status": g("Follow-up Status"),
-            "people": g("People") or [], "companies": g("Company") or [], "opps": g("Opportunities") or []}
+            "people": g("People") or [], "companies": g("Company") or [], "opps": g("Opportunities") or [],
+            "edited": page.get("last_edited_time")}
 
 
 def task(page):
@@ -94,6 +99,20 @@ TASK_FILTER = {"filter": {"and": [{"property": "Area", "select": {"equals": "car
                                   {"property": "Project", "select": {"does_not_equal": "Consulting"}}]}}
 
 
+def one_per_job(opps):
+    """One Opportunities page per Job ID, plus the extra pages. Two pages can share a Job ID when Pursue reaches
+    opportunity-write twice before Notion's query sees the first page (Bain, 2026-10-22), and the opportunities
+    table is keyed on Job ID, so a refresh carrying both failed its upsert. Kept: the page with the most links
+    (people, meetings, tasks), then the newest edit, then the lower page id. Order is preserved."""
+    links = lambda o: len(o.get("people") or []) + len(o.get("meetings") or []) + len(o.get("tasks") or [])
+    best = {}
+    for o in sorted(sorted(opps, key=lambda o: o.get("page") or ""),
+                    key=lambda o: (links(o), o.get("edited") or ""), reverse=True):
+        best.setdefault(o.get("id"), o)
+    kept = [o for o in opps if best.get(o.get("id")) is o]
+    return kept, [o for o in opps if best.get(o.get("id")) is not o]
+
+
 def pull(cfg, p):
     tok = notion.token(cfg)
     n = cfg["notion"]
@@ -101,7 +120,10 @@ def pull(cfg, p):
     names = {pg["id"]: plain((pg.get("properties") or {}).get("Name"))
              for pg in query_all(tok, notion.source(cfg, "companies_data_source"))}
     opps = [opportunity(pg, names) for pg in query_all(tok, notion.source(cfg, "opportunities_data_source"))]
-    opps = [o for o in opps if o["id"]]
+    opps, extra = one_per_job([o for o in opps if o["id"]])
+    for o in extra:
+        print(f"notion_sync: a second Opportunities page for {o['id']} ({o['url']}); the board keeps one, archive the other",
+              file=sys.stderr)
     opps.sort(key=lambda o: (o["stage"] or "", o["company_name"] or ""))
     meets = [meeting(pg) for pg in query_all(tok, notion.source(cfg, "meetings_data_source"))]
     meets.sort(key=lambda m: m["date"] or "", reverse=True)
@@ -115,7 +137,7 @@ def pull(cfg, p):
     for o in opps:
         was = prev.get(o["id"]) or {}
         o["lane_since"] = was.get("lane_since") if was.get("lane") == o["lane"] and was.get("lane_since") else asof[:10]
-    write(opps_file(p), {"asof": asof, "opps": opps})
+    write(opps_file(p), {"asof": asof, "opps": opps, "duplicates": [o["url"] for o in extra]})
     write(meetings_file(p), {"asof": asof, "meetings": meets})
     write(tasks_file(p), {"asof": asof, "tasks": tasks})
     return contacts, {"asof": asof, "opps": opps}, {"asof": asof, "meetings": meets}, {"asof": asof, "tasks": tasks}

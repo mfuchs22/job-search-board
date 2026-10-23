@@ -1,6 +1,8 @@
-"""Push the board to Supabase: one `jobs` row per live record, three `board_meta` rows (summary, companies, paths),
+"""Push the board to Supabase: one `jobs` row per live record, five `board_meta` rows (summary, companies, paths,
+contact_changes from contact_refresh.py, briefs),
 the Notion mirrors (`contacts`, `opportunities`, `meetings`, `tasks`), and the org charts (`org_charts`, through
-org_chart.push_all).
+org_chart.push_all). The mirror rows are built by notion_mirror.py. Between refreshes the same shape is written
+by supabase/functions/notion-hook (webhook and the 5-minute reconcile). This push remains the full rebuild.
 
     py engine/push_board.py       push from the current jobs.json (build.py does this after the markdown views)
 
@@ -12,8 +14,11 @@ import re
 from pathlib import Path
 
 from common import load_config, paths, load_jobs
+from notion_mirror import mirror_rows
 from notion_sync import load_all as load_notion
 from render_dashboard import board_payload, render_job_md
+import briefs
+import contact_refresh
 import org_chart
 import stage_history
 import pulse_history
@@ -49,25 +54,24 @@ def network_pages(cfg, p, people):
 
 def push_notion(cfg, p, built):
     """Mirror the four Notion pulls (notion_sync.py) into `contacts`, `opportunities`, `meetings` and `tasks`, plus
-    the rendered person pages as board_meta network_pages. A table's rows are deleted only after a real pull, so a
-    missing file never empties the board."""
+    the rendered person pages as board_meta network_pages. Rows come from notion_mirror.mirror_rows. `updated_at`
+    is the page's Notion `edited` time when the pull recorded one, so a later webhook is not treated as stale.
+    A table's rows are deleted only after a real pull, so a missing file never empties the board. This is the
+    backstop for a delete the live hook missed."""
     contacts, opps, meets, tasks = load_notion(p)
     pages = network_pages(cfg, p, contacts.get("people") or [])
     try:
         sb.upsert("board_meta", [{"key": "network_pages", "payload": pages, "updated_at": built}], cfg=cfg)
-        people = [{"id": c["id"], "payload": c, "updated_at": built} for c in contacts.get("people") or []]
-        opp_rows = [{"id": o["id"], "page_id": o["page"], "payload": o, "updated_at": built}
-                    for o in opps.get("opps") or []]
-        meet_rows = [{"id": m["id"], "payload": m, "updated_at": built} for m in meets.get("meetings") or []]
-        task_rows = [{"id": t["id"], "payload": t, "updated_at": built} for t in tasks.get("tasks") or []]
-        for table, rows, asof in (("contacts", people, contacts.get("asof")),
-                                  ("opportunities", opp_rows, opps.get("asof")),
-                                  ("meetings", meet_rows, meets.get("asof")),
-                                  ("tasks", task_rows, tasks.get("asof"))):
+        rows_by_table = mirror_rows(contacts, opps, meets, tasks, built)
+        asof = {"contacts": contacts.get("asof"), "opportunities": opps.get("asof"),
+                "meetings": meets.get("asof"), "tasks": tasks.get("asof")}
+        for table, rows in rows_by_table.items():
             if rows:
                 sb.upsert(table, rows, cfg=cfg)
-            if asof:
+            if asof[table]:
                 sb.delete_not_in(table, [r["id"] for r in rows], cfg=cfg)
+        people, opp_rows = rows_by_table["contacts"], rows_by_table["opportunities"]
+        meet_rows, task_rows = rows_by_table["meetings"], rows_by_table["tasks"]
         return (f"{len(people)} contacts ({len(pages)} with a vault page), {len(opp_rows)} opportunities, "
                 f"{len(meet_rows)} meetings, {len(task_rows)} career tasks")
     except SystemExit as e:  # a table not migrated yet, or a Supabase hiccup: jobs are already pushed
@@ -109,7 +113,12 @@ def push(cfg, p, data, health=None):
         {"key": "summary", "payload": summary, "updated_at": built},
         {"key": "companies", "payload": companies, "updated_at": built},
         {"key": "paths", "payload": people, "updated_at": built},
+        {"key": "contact_changes", "payload": contact_refresh.board_payload(p), "updated_at": built},
     ], cfg=cfg)
+    try:  # the Today briefs (briefs.py): the cards' options and the page behind "Open brief"
+        sb.upsert("board_meta", [{"key": "briefs", "payload": briefs.load(p), "updated_at": built}], cfg=cfg)
+    except (SystemExit, OSError, ValueError) as e:
+        print(f"briefs not pushed ({e})")
     hist = push_history(cfg, p, data, built)
     n_inbox = sum(1 for j in jobs if not j["verdict"] and not j["excluded"] and (j["score"] or 0) >= summary["min_score"])
     return (f"supabase {len(jobs)} jobs ({n_inbox} to review, {len(stale)} retired), postings through {summary['data_asof']}; "

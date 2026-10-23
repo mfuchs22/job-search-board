@@ -55,15 +55,21 @@ def parse_touch(text):
     return {"date": m.group(1), "type": m.group(2).strip(), "note": (m.group(3) or "").strip()} if m else None
 
 
-def touches(token, page_id):
-    """The touch log in a Network page body, newest first."""
+def touches_from_blocks(blocks):
+    """Touch-log lines in page blocks, newest first. Keep in step with touchesFromBlocks
+    in supabase/functions/_shared/notion_mirror.ts."""
     out = []
-    for b in notion.children(token, page_id):
+    for b in blocks or []:
         if b.get("type") in ("bulleted_list_item", "paragraph"):
             t = parse_touch("".join(x.get("plain_text", "") for x in (b.get(b["type"]) or {}).get("rich_text") or []))
             if t:
                 out.append(t)
     return sorted(out, key=lambda t: t["date"], reverse=True)
+
+
+def touches(token, page_id):
+    """The touch log in a Network page body, newest first."""
+    return touches_from_blocks(notion.children(token, page_id))
 
 
 def person(page):
@@ -77,7 +83,7 @@ def person(page):
             "last_type": g("Last Touch Type"), "last_date": g("Last Touch Date"), "last_note": g("Last Touch Note"),
             "next_type": g("Next Touch Type"), "next_action": g("Next Action"), "next_date": g("Next Action Date"),
             "linkedin": g("LinkedIn"), "notes": g("Notes"), "last_met": g("Last met"),
-            "roles": roles, "edited": page.get("last_edited_time")}
+            "check_before": g("Check Before Applying"), "roles": roles, "edited": page.get("last_edited_time")}
 
 
 def pull(cfg, p):

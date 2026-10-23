@@ -28,10 +28,10 @@ const PROPS: Record<string, string> = {
   name: "Name", company: "Company", role: "Role", how: "How Connected", status: "Status", priority: "Priority",
   hook: "Hook", last_type: "Last Touch Type", last_date: "Last Touch Date", last_note: "Last Touch Note",
   next_type: "Next Touch Type", next_action: "Next Action", next_date: "Next Action Date",
-  roles: "Job board roles", linkedin: "LinkedIn", notes: "Notes",
+  roles: "Job board roles", linkedin: "LinkedIn", notes: "Notes", check_before: "Check Before Applying",
 };
 const EDITABLE = new Set(["status", "priority", "hook", "last_type", "last_date", "last_note", "next_type", "next_action",
-  "next_date", "roles", "notes", "linkedin", "how"]);
+  "next_date", "roles", "notes", "linkedin", "how", "check_before"]);
 
 const reply = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json" } });
@@ -105,7 +105,8 @@ function normalize(page: any, touches: Touch[] = []) {
     status: g("Status"), priority: g("Priority"), hook: g("Hook"),
     last_type: g("Last Touch Type"), last_date: g("Last Touch Date"), last_note: g("Last Touch Note"),
     next_type: g("Next Touch Type"), next_action: g("Next Action"), next_date: g("Next Action Date"),
-    linkedin: g("LinkedIn"), notes: g("Notes"), last_met: g("Last met"), roles, edited: page.last_edited_time,
+    linkedin: g("LinkedIn"), notes: g("Notes"), last_met: g("Last met"),
+    check_before: g("Check Before Applying"), roles, edited: page.last_edited_time,
     touches,
   };
 }
@@ -189,7 +190,8 @@ Deno.serve(async (req) => {
     }
     const contact = normalize(page, action === "create" ? [] : (await touchLog(page.id)).touches);
     const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const { error } = await admin.from("contacts").upsert({ id: contact.id, payload: contact, updated_at: new Date().toISOString() });
+    // The page's last_edited_time, not wall-clock now: notion-hook skips a write that is older than updated_at.
+    const { error } = await admin.from("contacts").upsert({ id: contact.id, payload: contact, updated_at: page.last_edited_time });
     if (error) throw new Error(`saved to Notion, mirror failed: ${error.message}`);
     return reply({ contact });
   } catch (e) {

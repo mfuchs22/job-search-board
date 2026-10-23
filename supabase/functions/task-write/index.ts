@@ -117,7 +117,8 @@ Deno.serve(async (req) => {
     const page = await notion(`/pages/${id}`, "PATCH", { properties });
     const task = normalize(page);
     const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const { error } = await admin.from("tasks").upsert({ id: task.id, payload: task, updated_at: new Date().toISOString() });
+    // The page's last_edited_time, not wall-clock now: notion-hook skips a write that is older than updated_at.
+    const { error } = await admin.from("tasks").upsert({ id: task.id, payload: task, updated_at: page.last_edited_time });
     if (error) throw new Error(`saved to Notion, mirror failed: ${error.message}`);
     return reply({ task });
   } catch (e) {

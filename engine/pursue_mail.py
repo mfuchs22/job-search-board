@@ -14,10 +14,12 @@ The model's part (the pursue-followup routine's mail step, Personal-OS Tools/pur
 Gmail and writing events.json:
 
     [{"id": "<record id>", "date": "YYYY-MM-DD", "time": "2:29 PM", "type": "Sent" | "Email" | "Applied" | "Invite",
-      "with": "the recruiter (the search firm)", "what": "one line", "link": "https://mail.google.com/..."}]
+      "with": "the recruiter (the search firm)", "what": "one line", "link": "https://mail.google.com/...", "when": "YYYY-MM-DD"}]
 
 Sent is the owner writing to someone about the role; Email is them writing to him; Applied is a portal's confirmation;
-Invite is an interview being booked. The rules here are the owner's (2026-10-20): a send hands the ball to them and sets a
+Invite is an interview being booked, found in Gmail or only on the calendar (2026-10-23: invites that never reach
+the inbox, booked straight onto the calendar); `when` is the interview's own date, and the role's next step is dated
+for it, so Today's three-day interview rule sees it. The rules here are the owner's (2026-10-20): a send hands the ball to them and sets a
 follow-up at 5 business days (10 after an application); a reply hands it back to him and replaces the reminder; an
 invite moves the role to Interviewing. A stage only ever moves forward here, and nothing here closes a role: No
 response is proposed as the owner's next step, never set. Every event from them on an Active role, and every invite, goes
@@ -109,6 +111,9 @@ def effect(e, stage):
     fwd = lambda s: s if ORDER.index(s) > ORDER.index(stage) else None
     who = e["with"].split("(")[0].strip()
     if e["type"] == "Invite":
+        when = e.get("when") if re.match(r"\d{4}-\d{2}-\d{2}$", e.get("when") or "") else None
+        if when:
+            return fwd("interviewing"), "owner", f"Interview with {who} on {when}: prep", when
         return fwd("interviewing"), "owner", f"Confirm the interview with {who} and prep", e["date"]
     if e["type"] == "Email":
         return None, "owner", f"Reply to {who}", e["date"]

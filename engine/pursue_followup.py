@@ -99,6 +99,9 @@ def fold_inputs(cfg, p, idx, dry):
         if not f or not f.exists():
             continue  # the plan's file is gone or not pulled yet; the row waits for the next run
         what = "Approved" if r.get("approve") else "Changed"
+        if r.get("choice"):
+            opt = next((o for o in (plan_record(p.vault, j["job_file"]) or {}).get("options", []) if o["letter"] == r["choice"]), None)
+            what = f"Chose {r['choice']}" + (f" ({opt['label']})" if opt else "")
         note = " ".join((r.get("note") or "").split())
         line = f"- {r['ts'][:10]} (plan v{r.get('version') or 1}): {what}." + (f" {note}" if note else "")
         if not dry:

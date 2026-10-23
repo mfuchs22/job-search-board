@@ -179,8 +179,23 @@ def plan_record(vault, job_file):
     return {"version": int(v.group(1)) if v else 1, "date": v.group(2) if v else "",
             "route": kv.get("route", ""), "why": kv.get("why", ""), "people": kv.get("people", ""),
             "materials": kv.get("materials", ""), "decision": kv.get("decision for owner", ""),
-            "status": kv.get("status", "proposed"),
+            "options": options(kv), "status": kv.get("status", "proposed"),
             "input": [_plain(l.lstrip("-* ").strip()) for l in sec.get("owner's input", []) if l.strip()]}
+
+
+def options(kv):
+    """The `**Option A:** label | why | act` lines of a plan or a brief (2026-10-23, the owner: every Today card offers A,
+    B and sometimes C, each with its reason, A the recommendation unless `**Recommended:**` names another) as
+    [{letter, label, why, act, rec}]. `act` is what the card's button does (briefs.ACTS); empty means open the brief."""
+    rec = (kv.get("recommended", "") or "A").strip()[:1].upper()
+    out = []
+    for letter in "ABC":
+        raw = kv.get(f"option {letter.lower()}", "")
+        if not raw:
+            continue
+        label, why, act = (raw.split("|", 2) + ["", ""])[:3]
+        out.append({"letter": letter, "label": label.strip(), "why": why.strip(), "act": act.strip(), "rec": letter == rec})
+    return out
 
 
 def timeline_rows(vault, job_file):

@@ -161,6 +161,17 @@ Deno.serve(async (req) => {
             ...(co ? { Company: { relation: [{ id: co.id }] } } : {}),
           },
         });
+        // Two promotes for one role can both miss the other's page (the query lags a create) and make two pages
+        // (Bain, 2026-10-22). The first page made wins; a later one goes to the trash, where Notion can restore it.
+        const all = await notion(`/data_sources/${ds}/query`, "POST", {
+          page_size: 10, filter: { property: "Job ID", rich_text: { equals: id } },
+          sorts: [{ timestamp: "created_time", direction: "ascending" }],
+        });
+        const first = all.results?.[0];
+        if (first && first.id !== page.id) {
+          await notion(`/pages/${page.id}`, "PATCH", { in_trash: true });
+          page = first;
+        }
       }
     } else if (!page) {
       throw new Error(`no Notion opportunity for ${id}; mark it Pursue first`);
@@ -199,8 +210,9 @@ Deno.serve(async (req) => {
       opp.company_name = plain(co.properties?.["Name"]);
     }
     const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    // The page's last_edited_time, not wall-clock now: notion-hook skips a write that is older than updated_at.
     const { error } = await admin.from("opportunities").upsert({
-      id: opp.id ?? id, page_id: opp.page, payload: opp, updated_at: new Date().toISOString(),
+      id: opp.id ?? id, page_id: opp.page, payload: opp, updated_at: page.last_edited_time,
     });
     if (error) throw new Error(`saved to Notion, mirror failed: ${error.message}`);
     return reply({ opportunity: opp });
