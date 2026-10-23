@@ -11,6 +11,9 @@ note as a feedback line, commit the vault, post one line to #job-search, and wri
 (done or failed, with a plain sentence the banner shows). The deep pass on newcomers still belongs to the morning
 routine; a sync only reports how many wait for it.
 
+Before each claim it also calls draft_now.kick() (2026-10-23): a plan answered on the board is folded into
+campaign.md and, when the role still wants drafts, a headless Claude run starts on them at once.
+
 Single-writer rule: this is the only writer of sync_requests rows past `requested`.
 """
 import re
@@ -25,6 +28,7 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import load_config, load_jobs, paths  # noqa: E402
 import supabase as sb  # noqa: E402
+import draft_now  # noqa: E402
 
 ENGINE = Path(__file__).resolve().parent
 HOST = socket.gethostname().split(".")[0]
@@ -179,6 +183,13 @@ def do_sync(cfg, p, req):
 
 def once(cfg, p):
     touch_last_run()
+    # A plan answered on the board starts its drafts now, not at 01:30 (the owner, 2026-10-23; engine/draft_now.py).
+    try:
+        line = draft_now.kick(cfg, p)
+        if line:
+            print(line)
+    except (RuntimeError, OSError, SystemExit, subprocess.TimeoutExpired, ValueError, KeyError) as e:
+        print(f"draft on answer failed: {e}")
     req = claim(cfg)
     if not req:
         return False

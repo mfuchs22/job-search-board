@@ -44,7 +44,7 @@ window.demoClient = function (src) {
         return load().then(() => {
           const T = D.tables[t] || (D.tables[t] = []); let out;
           const rows = payload == null ? [] : (Array.isArray(payload) ? payload : [payload]);
-          if (op === "upsert") { rows.forEach(r => { const i = T.findIndex(x => x.id === r.id); if (i >= 0) T[i] = Object.assign({}, T[i], r); else T.push(r); }); out = rows; }
+          if (op === "upsert") { rows.forEach(r => { const i = T.findIndex(x => r.id != null ? x.id === r.id : x.key === r.key); if (i >= 0) T[i] = Object.assign({}, T[i], r); else T.push(r); }); out = rows; }
           else if (op === "insert") {
             rows.forEach(r => {
               if (r.id == null) r.id = T.reduce((m, x) => Math.max(m, +x.id || 0), 0) + 1;

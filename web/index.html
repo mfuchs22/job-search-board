@@ -509,6 +509,9 @@ a.tc-t{color:inherit;text-decoration:none}a.tc-t:hover b{color:var(--accent);tex
 .bf-head{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}.bf-sent{display:flex;flex-direction:column;align-items:flex-end;gap:4px;max-width:220px;text-align:right}
 .bf-links{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:var(--fs-sm)}
 .tc-o.picked .tc-l{background:var(--green);color:#fff}
+.tc-doing{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;padding:7px 10px;border-radius:6px;background:var(--green-soft);color:var(--green-text);font-size:var(--fs-sm)}.tc-doing b{font-weight:600}
+.tc-mv{display:flex;gap:2px;flex:none}.tc-mv button{padding:1px 7px;font-size:12px;line-height:1.4;border-radius:4px}
+.td-up{flex:none;padding:2px 8px;font-size:12px}
 textarea.bf-text{width:100%;box-sizing:border-box;font:inherit;font-size:14.5px;line-height:1.5;min-height:220px;resize:vertical;color:var(--text)}
 a.btnlink{display:inline-block;font-size:12.5px;padding:3px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);text-decoration:none}a.btnlink:hover{border-color:var(--accent)}
 @media (max-width:900px){a.btnlink{padding:7px 12px;font-size:14px}.bf-sent{align-items:flex-start;text-align:left;max-width:none}}
@@ -758,7 +761,7 @@ const ICON={
 let JOBS=[],byId={},SUMMARY={},COMPANIES={},ORGS={},STAGE_HIST={},PULSE={},PATHS={},STAGES=[],OUTCOMES=[],ROLE_TYPES={},CONTACTS=[],NPAGES={};
 /* Notion is the home for a Pursue role (2026-09-17): OPPS mirrors its Opportunities pages, keyed by record id,
    and carries the links to people, meetings, tasks and the company. MEETINGS mirrors Meeting Notes. */
-let OPPS={},MEETINGS=[],TASKS=[],PLANIN={}; /* TASKS mirrors the open career tasks (To-dos tab, 2026-09-22) */
+let OPPS={},MEETINGS=[],TASKS=[],PLANIN={},MARKS={}; /* TASKS mirrors the open career tasks (To-dos tab, 2026-09-22) */
 let REVIEW=8,BOARDF=7,loaded=false,state={};
 function fb(id){return state[id]||(state[id]={v:"",cal:"",note:"",flag:false,stage:"",outcome:"",next:"",vts:"",sts:""});}
 /* A card's verdict, calibration and note are staged here until Submit. Nothing
@@ -774,7 +777,7 @@ function applyOpp(o){if(!o||!o.id)return;const was=OPPS[o.id];if(!o.lane_since&&
 function applyVerdictRow(x){const s=fb(x.id);if(tsNum(x.ts)>tsNum(s.vts))Object.assign(s,{v:x.v||"",cal:x.cal||"",note:x.note||"",flag:!!x.flag,vts:x.ts});}
 let VIEWS={};let CHANGES=[]; /* board_meta contact_changes (engine/contact_refresh.py): who changed jobs, for Today */
 async function loadBoard(){
-  const [j,m,v,ct,op,mt,sr,tk,stp,svr,ow,pi]=await Promise.all([sb.from("jobs").select("id,payload"),sb.from("board_meta").select("key,payload"),sb.from("verdicts").select("*"),sb.from("contacts").select("id,payload"),sb.from("opportunities").select("id,payload"),sb.from("meetings").select("id,payload"),sb.from("sync_requests").select("*").order("requested_at",{ascending:false}).limit(1),sb.from("tasks").select("id,payload"),sb.from("startups").select("id,payload"),sb.from("startup_verdicts").select("*"),sb.from("org_watch").select("*"),sb.from("plan_inputs").select("job_id,version")]);
+  const [j,m,v,ct,op,mt,sr,tk,stp,svr,ow,pi,tm]=await Promise.all([sb.from("jobs").select("id,payload"),sb.from("board_meta").select("key,payload"),sb.from("verdicts").select("*"),sb.from("contacts").select("id,payload"),sb.from("opportunities").select("id,payload"),sb.from("meetings").select("id,payload"),sb.from("sync_requests").select("*").order("requested_at",{ascending:false}).limit(1),sb.from("tasks").select("id,payload"),sb.from("startups").select("id,payload"),sb.from("startup_verdicts").select("*"),sb.from("org_watch").select("*"),sb.from("plan_inputs").select("job_id,version"),sb.from("today_marks").select("*")]);
   const err=j.error||m.error||v.error;
   if(err){setSync("err","load failed: "+err.message);return false;}
   JOBS=(j.data||[]).map(r=>r.payload);byId={};JOBS.forEach(x=>byId[x.id]=x);
@@ -786,6 +789,7 @@ async function loadBoard(){
   MEETINGS=mt.error?[]:(mt.data||[]).map(r=>r.payload);
   TASKS=tk.error?[]:(tk.data||[]).map(r=>r.payload);
   PLANIN={};(pi&&!pi.error?pi.data||[]:[]).forEach(r=>{PLANIN[r.job_id+"|"+r.version]=true;}); /* plan answers already sent (Today) */
+  MARKS={};(tm&&!tm.error?tm.data||[]:[]).forEach(r=>{MARKS[r.key]=r;}); /* his order and picks on Today (optional, like the mirrors) */
   SYNCREQ=sr.error?null:((sr.data||[])[0]||null); /* the newest Sync request, if the table exists */
   STAGES=SUMMARY.stages||["shortlist","researching","outreach","applied","interviewing","offer","closed"];
   OUTCOMES=SUMMARY.outcomes||["no_response","rejected","withdrew","accepted"];
@@ -808,7 +812,8 @@ function subscribe(){
     .on("postgres_changes",{event:"*",schema:"public",table:"tasks"},p=>{const t=p.new&&p.new.payload;if(!t){scheduleReload();return;}const i=TASKS.findIndex(x=>x.id===t.id);if(i>=0)TASKS[i]=t;else TASKS.push(t);render();})
     .on("postgres_changes",{event:"*",schema:"public",table:"sync_requests"},p=>{const r=p.new;if(r&&r.id&&(!SYNCREQ||r.id>=SYNCREQ.id)){SYNCREQ=r;if(loaded)banner();}})
     .on("postgres_changes",{event:"*",schema:"public",table:"startup_verdicts"},p=>{if(p.new&&p.new.id&&typeof applySVerdict==="function"){applySVerdict(p.new);render();}})
-    .on("postgres_changes",{event:"*",schema:"public",table:"startups"},scheduleReload).subscribe();
+    .on("postgres_changes",{event:"*",schema:"public",table:"startups"},scheduleReload)
+    .on("postgres_changes",{event:"*",schema:"public",table:"today_marks"},p=>{const r=p.new;if(r&&r.key){MARKS[r.key]=r;render();}}).subscribe();
   document.addEventListener("visibilitychange",async()=>{if(!document.hidden&&loaded&&await loadBoard())render();});
 }
 const syncEl=document.getElementById("sync"),syncText=document.getElementById("syncText");
@@ -1368,7 +1373,7 @@ const todoDueCount=()=>todoItems().filter(i=>!i.done&&(i.b==="overdue"||i.b==="t
 const tdWhen=i=>i.nostep?"":!i.date?"no date":i.b==="today"?"Today":i.b==="overdue"?`${-daysFrom(i.date)}d late`:daysFrom(i.date)===1?"Tomorrow":i.b==="week"?new Date(i.date+"T12:00:00").toLocaleDateString([],{weekday:"short"}):new Date(i.date+"T12:00:00").toLocaleDateString([],{month:"short",day:"numeric"});
 const tdDateBtns=(k,small)=>`<button data-tsnooze="${k}" data-days="0">Today</button><button data-tsnooze="${k}" data-days="1">Tomorrow</button><button data-tsnooze="${k}" data-days="7">Next week</button><button data-tsnooze="${k}" data-days="later" title="No date">Later</button>`;
 const tdUndo=i=>i.p?`<button class="td-undo" data-tundo="${esc(i.key)}" title="Take back the staged change">Undo</button>`:"";
-const tdRow=(i,on,opts)=>{const k=esc(i.key);return`<div class="td-row${on?" on":""}${i.done?" done":""}${i.p?" pend":""}" data-tsel="${k}"><button class="td-box" data-tdone="${k}" aria-label="Done" title="Done"${i.nostep?" disabled":""}></button><div class="td-tx"><b>${esc(i.text)}</b><i>${esc(i.who)}${i.sub?" · "+esc(i.sub):""}</i>${opts&&opts.why?`<em class="td-why">${esc(opts.why)}</em>`:""}${opts&&opts.extra?`<div class="td-btns td-dec">${opts.extra}</div>`:""}${opts&&opts.btns?`<div class="td-btns">${tdDateBtns(k)}</div>`:""}</div>${tdUndo(i)}<span class="td-k ${i.kind}">${cap(i.kind)}</span><span class="td-dt k-${i.b}">${tdWhen(i)}</span></div>`;};
+const tdRow=(i,on,opts)=>{const k=esc(i.key);return`<div class="td-row${on?" on":""}${i.done?" done":""}${i.p?" pend":""}" data-tsel="${k}"><button class="td-box" data-tdone="${k}" aria-label="Done" title="Done"${i.nostep?" disabled":""}></button><div class="td-tx"><b>${esc(i.text)}</b><i>${esc(i.who)}${i.sub?" · "+esc(i.sub):""}</i>${opts&&opts.why?`<em class="td-why">${esc(opts.why)}</em>`:""}${opts&&opts.extra?`<div class="td-btns td-dec">${opts.extra}</div>`:""}${opts&&opts.btns?`<div class="td-btns">${tdDateBtns(k)}</div>`:""}</div>${tdUndo(i)}${opts&&opts.top&&!i.done&&!i.nostep?`<button class="td-up" data-trank="${k}" data-dir="top" title="Move to the top of Today">To top</button>`:""}<span class="td-k ${i.kind}">${cap(i.kind)}</span><span class="td-dt k-${i.b}">${tdWhen(i)}</span></div>`;};
 const tdFold=new Set();
 function tdGroups(items){const g=[];const push=(key,name,list)=>{if(list.length)g.push({key,name,list});};
   push("od","Overdue",items.filter(i=>i.b==="overdue"));push("td","Today · "+fmtDate(todayIso()),items.filter(i=>i.b==="today"));
@@ -1445,13 +1450,13 @@ async function todoSync(){if(tdSyncing)return;const keys=Object.keys(PEND);if(!k
         const {error}=await sb.from("plan_inputs").insert(row);
         if(error)setSync("err",error.message);
         else{ok=true;PLANIN[id+"|"+p.version]=true;tdOther=null;  /* the answer is saved; the next step is a courtesy and may fail alone */
-          await oppWrite({action:"update",id,fields:p.mv?moveFields(p.mv,id):{ball:"claude",next:"Claude works from your plan answer",next_date:plusDays(1)}});}}
+          await oppWrite({action:"update",id,fields:p.mv?Object.assign(moveFields(p.mv,id),p.mv==="bench"?{next:"Bench review",next_date:plusDays(21)}:{next:"",next_date:""}):{ball:"claude",next:"Claude works from your plan answer",next_date:plusDays(1)}});}}
       else if(kind==="person"){if(p.form)ok=!!await netWrite({action:"done",id,fields:{...p.form,date:p.form.date||todayIso()}});
         if((ok||!p.form)&&p.date!==undefined)ok=!!await netWrite({action:"update",id,fields:{next_date:p.date}});}
       else{if(p.done)ok=!!await taskWrite({action:"done",id});
         else if(p.date!==undefined)ok=!!await taskWrite({action:"update",id,fields:p.date?{plan_day:p.date}:{plan_day:"",due:null}});}
     }catch(e){ok=false;}
-    if(ok)delete PEND[key];else{failed++;PEND[key].err=syncText.textContent||"write failed";}
+    if(ok){markSynced(key,p);delete PEND[key];}else{failed++;PEND[key].err=syncText.textContent||"write failed";}
     savePend();}
   tdSyncing=null;doneOpen=null;toast(failed?`${keys.length-failed} saved, ${failed} failed (still staged)`:`${keys.length} saved to Notion`);
   if(await loadBoard())paint();else paint();}
@@ -1534,15 +1539,21 @@ const KIND_TAG={plan:"Plan",interview:"Interview",move:"Move",call:"Call",intro:
 /* Where a card's name goes: its brief when there is one, else the role or the person. */
 const cardHref=r=>briefOf(r)?"#brief/"+rKey(r):r.j?"#job/"+r.j.id:r.i.kind==="person"?"#people/"+r.i.id:"#job/"+(r.i.j?r.i.j.id:r.i.id);
 const pickOf=key=>{const p=PEND[key];return p&&p.choice?p.choice:null;};
-function todayCard(r,n){const b=briefOf(r),key=rKey(r),k=esc(key);const os=optsOf(r);
+function todayCard(r,n,last){const b=briefOf(r),key=rKey(r),k=esc(key);const os=optsOf(r);const dm=doingOf(key),rk=rankOf(key);
   const tag=b&&b.kind?KIND_TAG[b.kind]||cap(b.kind):r.j?"Plan":r.i.dec?"Decision":r.i.kind==="person"?(isBooked(r.i.c)?"Call":"Message"):stageOf(r.i.j)==="interviewing"?"Interview":"Move";
   const who=r.j?r.j.company:r.i.who,sub=r.j?r.j.title:r.i.kind==="person"?[r.i.c.role,r.i.c.company].filter(Boolean).join(", "):r.i.j?r.i.j.title:r.i.sub;
   const q=b&&b.question||(r.j?r.j.plan.decision||r.j.plan.route:r.i.text);
   const other=tdOther===key?`<textarea data-planote="${esc(r.j?r.j.id:"")}" rows="2" placeholder="What to change: the route, what to stress or avoid, who to go through"></textarea><div class="td-btns"><button class="go" data-plan="${esc(r.j?r.j.id:"")}" data-ok="0">Send my changes</button></div>`:"";
-  return`<div class="td-card tc"><div class="tc-top"><span class="tc-k k-${esc(tag.toLowerCase())}">${esc(tag)}</span><span class="tc-why">${esc(r.why||"")}</span><span class="tc-n">${n}</span></div>
+  const mv=`<span class="tc-mv">${n>1?`<button data-trank="${k}" data-dir="-1" aria-label="Move up" title="Move up">↑</button>`:""}${last?"":`<button data-trank="${k}" data-dir="1" aria-label="Move down" title="Move down">↓</button>`}${rk!=null?`<button data-trank="${k}" data-dir="off" title="Back to the computed order">Unpin</button>`:""}</span>`;
+  const plan=r.j&&dm&&dm.act==="plan";
+  const doing=dm?`<div class="tc-doing"><b>${plan?"Waiting on Claude":"Doing"}: ${esc((dm.choice?dm.choice+", ":"")+(dm.label||""))}</b><span>picked ${esc(fmtDate(dm.picked_at.slice(0,10)))}</span></div>
+   ${r.i&&r.i.kind==="person"&&doneOpen===r.i.id?netDoneForm(r.i.c).replace('<form class="doneform"','<form class="doneform" data-tstage="'+k+'"').replace("Save to Notion","Stage it"):""}
+   <div class="td-btns tc-btns">${plan?`<span class="hint">Claude starts on the drafts within two minutes of Sync; the card clears when they are ready</span><button data-tfin="${k}">Mark done</button>`
+     :`<button class="go" data-tfin="${k}">${b&&b.draft||r.i&&r.i.kind==="person"?"Done: I sent it":"Done"}</button>${b?`<a class="btnlink" href="#brief/${k}">Open brief</a>`:""}<button data-tunpick="${k}">Change pick</button>`}</div>`:"";
+  return`<div class="td-card tc${dm?" doing":""}"><div class="tc-top"><span class="tc-k k-${esc(tag.toLowerCase())}">${esc(tag)}</span><span class="tc-why">${esc(rk!=null?"Your order · "+(r.why||""):(r.why||""))}</span>${mv}<span class="tc-n">${n}</span></div>
    <a class="tc-t" href="${esc(cardHref(r))}"><b>${esc(who)}</b>${sub?`<span>${esc(sub)}</span>`:""}</a><div class="tc-q">${esc(q)}</div>
-   <div class="tc-opts">${os.map(o=>`<div class="tc-o${o.rec?" rec":""}"><span class="tc-l">${o.letter}</span><div><b>${esc(o.label)}</b>${o.rec?'<span class="tc-rec">Recommended</span>':""} ${esc(o.why)}</div></div>`).join("")}</div>
-   ${other||`<div class="td-btns tc-btns">${os.map(o=>`<button${o.rec?' class="go"':""} data-topt="${k}" data-letter="${o.letter}">${o.letter}: ${esc(o.label)}</button>`).join("")}${r.j&&(r.j.plan.options||[]).length?`<button data-topt="${k}" data-letter="other">Something else</button>`:""}${b?"":`<span class="tc-nb">Brief comes tonight</span>`}</div>`}</div>`;}
+   <div class="tc-opts">${os.map(o=>`<div class="tc-o${o.rec?" rec":""}${dm&&dm.choice===o.letter?" picked":""}"><span class="tc-l">${o.letter}</span><div><b>${esc(o.label)}</b>${o.rec?'<span class="tc-rec">Recommended</span>':""}${dm&&dm.choice===o.letter?'<span class="tc-rec">Your pick</span>':""} ${esc(o.why)}</div></div>`).join("")}</div>
+   ${doing||other||`<div class="td-btns tc-btns">${os.map(o=>`<button${o.rec?' class="go"':""} data-topt="${k}" data-letter="${o.letter}">${o.letter}: ${esc(o.label)}</button>`).join("")}${r.j&&(r.j.plan.options||[]).length?`<button data-topt="${k}" data-letter="other">Something else</button>`:""}${b?"":`<span class="tc-nb">Brief comes tonight</span>`}</div>`}</div>`;}
 /* What an option's button does (docs/brief.md lists the acts). A new pick replaces an earlier one: no Undo first
    (the owner, 2026-10-23: "I basically can't reopen the brief unless I press undo"). On a plan card it records the pick. */
 function todayOpt(key,letter){const r=rOfKey(key);if(!r)return;
@@ -1550,15 +1561,58 @@ function todayOpt(key,letter){const r=rOfKey(key);if(!r)return;
   const b=briefOf(r);const o=optsOf(r).find(x=>x.letter===letter);if(!o)return;const act=o.act||"";
   if(r.j){if(act==="other"){tdOther=key;paint();return;}const mv=["bench","pause","close"].includes(act)?act:undefined;
     unstage(key);stage(key,{version:r.j.plan.version,approve:true,choice:letter,note:o.label,mv,text:r.j.company});toast(`Staged: ${letter}, ${o.label}. Sync sends it`);render();return;}
-  if(act==="brief"||!act||!(act==="done"||act==="later"||/^snooze:\d+$/.test(act)||act.startsWith("next:")||MOVES[act]||act==="slotquiet")){
-    if(b){if(location.hash!=="#brief/"+key)location.hash="#brief/"+key;else paint();}else{const h=cardHref(r);if(location.hash!==h)location.hash=h;}return;}
+  if(!TERMINAL(act)){markPick(key,r,o);
+    if(act==="done"||!b){toast(`Picked ${letter}. It stays at the top until you mark it done`);return;}
+    if(location.hash!=="#brief/"+key)location.hash="#brief/"+key;else paint();return;}
   if(r.i.p)unstage(key);
-  if(act==="done"){todoDone(key);return;}
+  markPut([{key,choice:letter,label:o.label,act,title:cardTitle(r)}]);
   if(act==="later"){todoSnooze(key,"later");return;}
   if(/^snooze:\d+$/.test(act)){todoSnooze(key,act.slice(7));return;}
   if(act.startsWith("next:")){const [txt,days]=act.slice(5).split("|");const d=plusDays(+days||7);stage(key,{next:txt,date:d,text:txt});toast(`Staged: ${txt}, ${fmtDate(d)}`);render();return;}
   if(MOVES[act]){todayMove(key,act);return;}
   try{localStorage.setItem("board.slotQuiet",plusDays(7));}catch(x){}toast("Hidden for a week");render();}
+/* the owner's order and his picks (2026-10-23, today_marks). the owner: "once you agree with the strategy, shouldn't it stay
+   there until you actually do the thing, and then you sign off on the thing being done?", and "the list should be
+   forced ranked in your opinion, and then I can move things around". A pick that still needs doing (send the note,
+   do it today) writes a mark at once and keeps the card at the top as Doing, with Done and the brief one tap away;
+   it leaves when Done or I sent it reaches Notion through Sync, or when the record shows the touch or the send landed
+   (the nightly mail read logs it). A pick that is the whole action (a snooze, a cleared date, close, bench) stages as
+   before and is done once Sync sends it. An answered plan stays as Waiting on Claude until its ball leaves Claude.
+   Done items stay seven days under Completed. His order: the arrows on a top card and To top on any row write a rank;
+   ranked cards come first in his order, then Doing cards, then the computed ranking fills the six. */
+const TERMINAL=a=>a==="later"||/^snooze:\d+$/.test(a)||a.startsWith("next:")||["close","noresp","gone","bench","pause","promote","slotquiet","applied","sent"].includes(a);
+const doingOf=key=>{const m=MARKS[key];return m&&m.picked_at&&!m.done_at?m:null;};
+const rankOf=key=>{const m=MARKS[key];return m&&m.rank!=null&&!m.done_at?m.rank:null;};
+const cardTitle=r=>r?(r.j?r.j.company:r.i.who):"";
+async function markPut(rows){rows=rows.map(r=>Object.assign({},MARKS[r.key]||{},r,{ts:nowIso()}));rows.forEach(r=>{MARKS[r.key]=r;});render();
+  const {error}=await sb.from("today_marks").upsert(rows);if(error){setSync("err","not saved: "+error.message);toast("Not saved: "+error.message);}}
+const markPick=(key,r,o)=>markPut([{key,choice:o.letter,label:o.label,act:o.act||"",pick_for:itemFor(r),picked_at:nowIso(),done_at:null,done_how:null,title:cardTitle(r)}]);
+function markDone(key,how,title){const m=MARKS[key]||{};markPut([{key,done_at:nowIso(),done_how:how,rank:null,title:m.title||title||key,picked_at:m.picked_at||nowIso()}]);}
+/* After Sync saved a staged change: a plan answered as proposed waits on Claude; anything else is done. */
+function markSynced(key,p){const [kind,id]=tdSplit(key);const title=kind==="plan"?(byId[id]||{}).company:p.text;
+  if(kind==="plan"&&!p.mv){markPut([{key,choice:p.choice||null,label:p.note||"Approved",act:"plan",pick_for:"plan v"+p.version,picked_at:nowIso(),done_at:null,done_how:null,title}]);return;}
+  markDone(key,kind==="plan"?(p.choice?p.choice+": ":"")+(p.note||"answered"):p.form?"touch logged":p.done?"done":p.mv?MOVES[p.mv]:p.date!==undefined?(p.date?"moved to "+fmtDate(p.date):"date cleared"):p.next!==undefined?"next step set":"saved",title);}
+/* A Doing card whose record shows the thing landed (a touch logged since the pick, the ball now with them, the role
+   closed, a plan's ball back from Claude) is done without a click. */
+const MARK_SEEN=new Set();
+function checkMarks(){let items=null;for(const [key,m] of Object.entries(MARKS)){if(!m.picked_at||m.done_at||MARK_SEEN.has(key))continue;
+  const [kind,id]=tdSplit(key);const day=m.picked_at.slice(0,10);const o=OPPS[id]||{};let how=null;
+  items=items||todoItems();const it=items.find(x=>x.key===key);const moved=!it||it.text0!==m.pick_for; /* its next step is not the one he picked on */
+  if(kind==="person"){const c=CONTACTS.find(x=>x.id===id);if(c&&moved&&c.last_date&&c.last_date>=day)how="touch logged";}
+  else if(kind==="role"){if(moved&&o.ball==="them")how="sent; ball with them";else if(byId[id]&&isClosed(byId[id]))how="closed";}
+  else if(kind==="plan"){if(m.act==="plan"&&o.ball&&o.ball!=="claude")how="drafts ready";}
+  if(how){MARK_SEEN.add(key);markDone(key,how);}}}
+function todayRank(key,dir){const top=todayParts().top.map(rKey);const pinned=top.filter(k=>rankOf(k)!=null);let order;
+  if(dir==="off"){markPut([{key,rank:null}]);toast("Back in the computed order");return;}
+  if(dir==="top")order=[key,...pinned.filter(k=>k!==key)];
+  else{const i=top.indexOf(key),n=i+(+dir);if(i<0||n<0||n>=top.length)return;const t=[...top];[t[i],t[n]]=[t[n],t[i]];
+    order=t.slice(0,Math.max(i,n)+1);pinned.forEach(k=>{if(!order.includes(k))order.push(k);});}
+  markPut(order.map((k,x)=>({key:k,rank:x+1,title:(MARKS[k]||{}).title||cardTitle(rOfKey(k))})));if(dir==="top")toast("Moved to the top of Today");}
+/* Done on a Doing card: the same finish the brief's I sent it gives, then Sync. */
+function todayFinish(key){const r=rOfKey(key);if(!r)return;
+  if(r.j){markDone(key,"marked done");toast("Done");return;}
+  const b=BRIEFS[key];if(r.i.kind==="role"&&b&&b.draft){todayMove(key,"sent");return;}
+  todoDone(key);}
 /* The draft on a brief is edited in place and kept on this device until it is sent. */
 const DRAFT_KEY=k=>"board.briefDraft."+k;
 function draftText(key){try{const v=localStorage.getItem(DRAFT_KEY(key));if(v!==null)return v;}catch(e){}return((BRIEFS[key]||{}).draft||{}).text||"";}
@@ -1707,7 +1761,15 @@ function todayParts(){const k3=plusDays(3);
     ...decs.filter(d=>d.dec!=="stale").map(i=>({i,why:i.decWhy})),
     /* Then due touches fill the six (2026-10-23), High priority first, oldest first. */
     ...[...pDue].sort((a,b)=>((a.c.priority==="High"?0:1)-(b.c.priority==="High"?0:1))||(a.date||"").localeCompare(b.date||"")).map(i=>({i,why:(i.b==="overdue"?tdWhen(i):"Due today")+(i.c.priority?" · "+i.c.priority.toLowerCase()+" priority":"")}))];
-  const stagedR=ranked.filter(isStaged);const top=ranked.filter(r=>!isStaged(r)&&!(r.i&&r.i.done)).slice(0,TOP_N);const topk=new Set(top.map(r=>r.i?r.i.key:"plan:"+r.j.id));
+  /* His order first, then what he picked and has not done, then the computed ranking (today_marks, 2026-10-23). */
+  const seen=new Set(ranked.map(rKey));
+  const extra=Object.keys(MARKS).filter(k=>!seen.has(k)&&(rankOf(k)!=null||doingOf(k))).map(k=>{const [kind,id]=tdSplit(k);
+    if(kind==="plan"){const j=byId[id];return j&&j.plan&&!isClosed(j)?{j,why:doingOf(k)?"You answered the plan":"Your order"}:null;}
+    const i=all.find(x=>x.key===k);return i&&!i.done?{i,why:doingOf(k)?"You picked it":"On your list"}:null;}).filter(Boolean);
+  const pool=[...ranked,...extra],rk=r=>rankOf(rKey(r));
+  const ord=[...pool.filter(r=>rk(r)!=null).sort((a,b)=>rk(a)-rk(b)),...pool.filter(r=>rk(r)==null&&doingOf(rKey(r))),...pool.filter(r=>rk(r)==null&&!doingOf(rKey(r)))];
+  const held=ord.filter(r=>!isStaged(r)&&(rk(r)!=null||doingOf(rKey(r)))).length;
+  const stagedR=ord.filter(isStaged);const top=ord.filter(r=>!isStaged(r)&&!(r.i&&r.i.done)).slice(0,Math.max(TOP_N,held));const topk=new Set(top.map(r=>r.i?r.i.key:"plan:"+r.j.id));
   const left=l=>l.filter(i=>!topk.has(i.key));
   const notDec=l=>l.filter(i=>!decided.has(i.id)||i.kind!=="role");
   return{items,top,decided:stagedR,decs:left(decs),iv:left(iv),plans:plans.filter(j=>!topk.has("plan:"+j.id)),
@@ -1715,16 +1777,16 @@ function todayParts(){const k3=plusDays(3);
     people:left(chg),theirs:notDec(rest.filter(i=>live(i)&&i.ball==="them")),
     bench:notDec(rest.filter(i=>i.kind==="role"&&i.lane==="bench")),paused:rest.filter(i=>i.kind==="role"&&i.lane==="paused")};}
 const todayCount=()=>todayParts().top.length;
-function viewToday(arg){const t=todayParts();
+function viewToday(arg){checkMarks();const t=todayParts();
   const all=[...t.top.filter(r=>r.i).map(r=>r.i),...t.iv,...t.now,...t.pnow,...t.nostep,...t.soon,...t.people,...t.theirs,...t.bench,...t.paused];
   /* No side pane on Today (the owner, 2026-10-23: it read as a stuck legacy window): a row opens in place. */
   const sel=all.find(i=>i.key===arg)||null;
   const on=i=>!!(sel&&i.key===sel.key);
-  const row=(i,why)=>tdRow(i,on(i),why||i.dec?{why:why||i.decWhy,extra:i.decBtns}:null)+(on(i)?`<div class="td-drawer">${tdPane(i)}</div>`:"");
+  const row=(i,why)=>tdRow(i,on(i),{why:why||i.decWhy,extra:i.dec?i.decBtns:"",top:true})+(on(i)?`<div class="td-drawer">${tdPane(i)}</div>`:"");
   const rows=list=>list.map(i=>row(i)).join("");
   const sec=(key,name,list,folded,hint)=>{if(!list.length)return"";const f=tdFold.has(key)!==!!folded;
     return`<div class="td-grp"><button class="td-gh${f?" fold":""}" data-tfold="${key}">${esc(name)}<span>${list.length}</span></button>${f?"":`${hint?`<div class="hint">${hint}</div>`:""}<div class="td-card">${rows(list)}</div>`}</div>`;};
-  const first=t.top.length?`<div class="td-grp td-top"><div class="td-gh">Do these first<span>${t.top.length}</span></div><div class="tc-grid">${t.top.map((r,n)=>todayCard(r,n+1)).join("")}</div></div>`:"";
+  const first=t.top.length?`<div class="td-grp td-top"><div class="td-gh">Do these first<span>${t.top.length}</span></div><div class="tc-grid">${t.top.map((r,n,a)=>todayCard(r,n+1,n===a.length-1)).join("")}</div></div>`:"";
   const restPlans=t.plans.length?`<div class="td-grp"><div class="td-gh">Plans to answer<span>${t.plans.length}</span></div><div class="hint">Nothing is drafted until you answer. Approve as is, or say what to change; Sync sends it.</div>${t.plans.map(planCard).join("")}</div>`:"";
   const inner=sec("dec","Decisions",t.decs)+sec("iv","Interviews, next 3 days",t.iv)+restPlans+sec("now","Also due · "+fmtDate(todayIso()),[...t.now,...t.pnow])+sec("ns","Active, no next step yet",t.nostep)
     +sec("soon","Coming up",t.soon)+sec("ppl","Relationships",t.people)+sec("them","Waiting on them",t.theirs)
@@ -1732,9 +1794,12 @@ function viewToday(arg){const t=todayParts();
   const n=t.decs.length+t.iv.length+t.plans.length+t.now.length+t.nostep.length+t.soon.length+t.people.length+t.theirs.length+t.bench.length+t.paused.length;
   const shut=!tdFold.has("rest");
   const more=n?`<div class="td-grp"><button class="td-gh${shut?" fold":""}" data-tfold="rest">Everything else<span>${n}</span></button>${shut?"":inner}</div>`:"";
+  /* Completed (the owner, 2026-10-23: "a way to go look at ones that you've checked off"): the last seven days of marks. */
+  const doneL=Object.values(MARKS).filter(m=>m.done_at&&daysAgo(m.done_at)<=7).sort((a,b)=>b.done_at.localeCompare(a.done_at));const dOpen=tdFold.has("done");
+  const completed=doneL.length?`<div class="td-grp"><button class="td-gh${dOpen?"":" fold"}" data-tfold="done">Completed, last 7 days<span>${doneL.length}</span></button>${dOpen?`<div class="td-card">${doneL.map(m=>`<div class="td-row done"><div class="td-tx"><b>${esc(m.title||m.key)}</b><i>${esc([m.choice&&m.label?m.choice+": "+m.label:m.label||"",m.done_how||""].filter(Boolean).join(" · "))}</i></div>${rOfKey(m.key)?`<button class="td-up" data-treopen="${esc(m.key)}">Reopen</button>`:""}<span class="td-dt">${esc(fmtDate(m.done_at.slice(0,10)))}</span></div>`).join("")}</div>`:""}</div>`:"";
   const ae=activeEarly();
-  return`<div class="sh"><h2>Today <span>${t.top.length} to do first · Active ${ae}/${ACTIVE_CAP}</span></h2><div class="hint">Ranked: interviews and calls booked for today or tomorrow, then plans, new intros, then due or stalled moves on Active roles by fit, then replies and decisions. A pick moves the card to Decided; Sync sends them all.</div></div>${tdDecided()}
-   <div class="td td-full"><div class="td-main">${first||'<div class="emptybig"><b>Nothing needs you first</b><span>No interview, plan or Active move is due.</span></div>'}${more}</div></div>`;}
+  return`<div class="sh"><h2>Today <span>${t.top.length} to do first · Active ${ae}/${ACTIVE_CAP}</span></h2><div class="hint">Ranked: interviews and calls booked for today or tomorrow, then plans, new intros, then due or stalled moves on Active roles by fit, then replies and decisions. Move a card with its arrows, or pull any row up with To top. A pick you still have to do stays here as Doing until you mark it done; a pick that is the whole move goes to Decided, and Sync sends it.</div></div>${tdDecided()}
+   <div class="td td-full"><div class="td-main">${first||'<div class="emptybig"><b>Nothing needs you first</b><span>No interview, plan or Active move is due.</span></div>'}${more}${completed}</div></div>`;}
 
 /* ---------- views ---------- */
 const NAV=[["today","Today",ICON.todo,()=>todayCount()||"",""],["inbox","Inbox",ICON.inbox,c=>c.review+c.border,""],["pipeline","Pipeline",ICON.board,()=>PIPE_LIVE.reduce((n,k)=>n+pipeJobs(k).length,0),""],["people","People",ICON.people,()=>CONTACTS.filter(c=>isIntro(c)||["overdue","today"].includes(netKind(c))).length||"",""],["map","Map",ICON.map,()=>mapPool().filter(pinOf).length,""]];
@@ -2380,7 +2445,7 @@ view.addEventListener("click",async e=>{const t=e.target.closest("[data-edit],[d
   if(!await writeVerdict(id,{v:""}))return;if(OPPS[id])await closeOpp(id);EDIT.delete(id);delete draft[id];
   toast(isInbox(byId[id])?"Back in the Inbox; your note is kept":"Verdict cleared. It scores under the inbox floor, so it will not show in the Inbox");render();});
 view.addEventListener("click",async e=>{const d=e.target.closest('a[href="#decide"]');if(d){e.preventDefault();const el=document.getElementById("decide");if(el)el.scrollIntoView({behavior:"smooth",block:"start"});return;}
-  const t=e.target.closest("[data-v],[data-quickv],[data-cal],[data-flag],[data-x],[data-open],[data-acc],[data-submit],[data-sel],[data-mapf],[data-pin],[data-mapzoom],[data-netlens],[data-addperson],[data-cdone],[data-snooze],[data-cdonego],[data-nsel],[data-link],[data-unlink],[data-tsel],[data-tdone],[data-tsnooze],[data-tfold],[data-tundo],[data-tsync],[data-tdiscard],[data-tmove],[data-tkeep],[data-tslotquiet],[data-chgsent],[data-chgcopy],[data-chgskip],[data-plan],[data-topt],[data-bcopy],[data-bcopyopen],[data-bgmail],[data-bclaude],[data-wtab],[data-otab],[data-plens],[data-samples],[data-scrf],[data-confirmrm]");if(!t)return;
+  const t=e.target.closest("[data-v],[data-quickv],[data-cal],[data-flag],[data-x],[data-open],[data-acc],[data-submit],[data-sel],[data-mapf],[data-pin],[data-mapzoom],[data-netlens],[data-addperson],[data-cdone],[data-snooze],[data-cdonego],[data-nsel],[data-link],[data-unlink],[data-tsel],[data-tdone],[data-tsnooze],[data-tfold],[data-tundo],[data-tsync],[data-tdiscard],[data-tmove],[data-tkeep],[data-tslotquiet],[data-chgsent],[data-chgcopy],[data-chgskip],[data-plan],[data-topt],[data-trank],[data-tfin],[data-tunpick],[data-treopen],[data-bcopy],[data-bcopyopen],[data-bgmail],[data-bclaude],[data-wtab],[data-otab],[data-plens],[data-samples],[data-scrf],[data-confirmrm]");if(!t)return;
   if(t.matches("[data-confirmrm]")){e.preventDefault();e.stopPropagation();t.disabled=true;await confirmRemoval(t.dataset.confirmrm);return;}
   if(t.dataset.samples){setSamples(!SAMPLES_ON);paint();return;}
   if(t.dataset.scrf){SCR_F=t.dataset.scrf;paint();return;}
@@ -2400,6 +2465,10 @@ view.addEventListener("click",async e=>{const d=e.target.closest('a[href="#decid
   if(t.dataset.tslotquiet){try{localStorage.setItem("board.slotQuiet",plusDays(7));}catch(x){}toast("Hidden for a week");render();return;}
   if(t.dataset.plan){planAnswer(t.dataset.plan,t.dataset.ok==="1");return;}
   if(t.dataset.topt){todayOpt(t.dataset.topt,t.dataset.letter);return;}
+  if(t.dataset.trank){todayRank(t.dataset.trank,t.dataset.dir);return;}
+  if(t.dataset.tfin){todayFinish(t.dataset.tfin);return;}
+  if(t.dataset.tunpick){markPut([{key:t.dataset.tunpick,picked_at:null,choice:null,label:null,act:null,pick_for:null}]);toast("Pick cleared");return;}
+  if(t.dataset.treopen){const k=t.dataset.treopen;markPut([{key:k,done_at:null,done_how:null,picked_at:nowIso()}]);toast("Back at the top");return;}
   if(t.dataset.bcopy){await briefCopy(t.dataset.bcopy);return;}
   /* The draft-out links navigate on their own; the handler only fills in the href (and copies for LinkedIn, which takes no text). */
   if(t.dataset.bcopyopen){briefCopy(t.dataset.bcopyopen,true);toast("Copied: paste it into the LinkedIn message");return;}
