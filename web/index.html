@@ -678,6 +678,7 @@ a.btnlink{display:inline-block;font-size:12.5px;padding:3px 10px;border:1px soli
 .pp-bench summary .mono{color:var(--muted);font-weight:400}
 .op-head{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:6px 0 14px}
 .op-chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.op-call{display:inline-flex;gap:4px;margin-right:4px}.op-call button{padding:3px 10px;font-size:var(--fs-sm);font-weight:500}
 .op-now{padding:10px 14px;margin:12px 0 16px}
 .pp-steps{display:flex;gap:4px}
 .pp-st{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:8px 10px;border-top:4px solid var(--border2);font-size:var(--fs-sm);color:var(--muted)}
@@ -2360,6 +2361,10 @@ function planView(j){const p=j.plan;
   const row=(l,v)=>v?`<div class="cp-kv"><span>${l}</span>${esc(v)}</div>`:"";
   return`<div class="sec card"><h4>Strategy <span class="hint">v${p.version}${p.date?" · "+esc(fmtDate(p.date)):""}</span></h4>${row("Route",p.route)}${row("Why",p.why)}${row("People",p.people)}${row("Materials",p.materials)}${row("Decision",p.decision)}
     ${(p.input||[]).length?`<div class="cp-sub">Your input</div>${cpList(p.input)}`:""}</div>`;}
+/* The call stays editable on every opportunity (the owner, 2026-10-26: a GitLab role he meant to Pass got the Close quick move
+   instead, which keeps it a Pursue under Closed). Pass is the same write as Pass in the Inbox: the verdict, then the Notion
+   page closed as Withdrew, and the role moves to Past. Pursue on a passed role puts it back on the Shortlist. */
+const verdictSwitch=j=>{const v=verdictOf(j);return`<span class="op-call" title="Your call"><button class="pursue${v==="pursue"?" on":""}" data-pv="Pursue" data-id="${esc(j.id)}">Pursue</button><button class="${v==="pass"?"on":""}" data-pv="Pass" data-id="${esc(j.id)}">Pass</button></span>`;};
 function oppPage(j){const k=pipeStage(j);const T=OPP_TABS;const tab=T.some(t=>t[0]===OPP_TAB)?OPP_TAB:"strategy";const lane=laneOf(j.id);
   const prep=(j.assets||[]).filter(a=>["Prep","Campaign","Roadmap","Pages"].includes(a.group));
   const body=tab==="brief"?viewDetail(j.id,{embed:true,brief:true})
@@ -2369,7 +2374,7 @@ function oppPage(j){const k=pipeStage(j);const T=OPP_TABS;const tab=T.some(t=>t[
     :`${planView(j)}${j.campaign?`<div class="cp-2 wr-ov"><div class="wr-col">${heroCard(j,true)}${learnedCard(j)}</div><div class="wr-col">${convCard(j)}</div></div>`:""}`;
   return`<div class="lv"><div class="crumb0"><a href="#pipeline">Pipeline</a> <i>/</i> <a href="#pipeline/${k}">${esc(pipeName(k))}</a> <i>/</i> ${esc(j.company)}</div>
     <div class="op-head"><div><div class="lv-t">${esc(j.title)}</div><div class="meta">${esc(j.company)}${j.location?" · "+esc(j.location):""} · score <span class="mono">${j.score??""}</span></div></div>
-      <div class="op-chips"><span class="chip pursue">${esc(pipeName(k))}</span>${k==="research"&&lane?`<span class="chip">${lane==="bench"?"Bench":"Active"}</span>`:""}${postingChip(j)}${j.url?`<a class="hint" href="${esc(j.url)}" target="_blank" rel="noopener">Posting</a>`:""}</div></div>
+      <div class="op-chips">${verdictSwitch(j)}<span class="chip pursue">${esc(pipeName(k))}</span>${k==="research"&&lane?`<span class="chip">${lane==="bench"?"Bench":"Active"}</span>`:""}${postingChip(j)}${j.url?`<a class="hint" href="${esc(j.url)}" target="_blank" rel="noopener">Posting</a>`:""}</div></div>
     ${pipeBar(j,true)}${checkWarn(j)}${tdBar()}${(()=>{const ti=todoItems().find(x=>x.key==="role:"+j.id);/* the role's next step and quick moves, the same staged edits as Today; Sync sends them */return ti?`<div class="op-now card">${tdPane(ti).replace(/<a class="chip pursue" href="#job\/[^"]*">Open the role<\/a>/,"")}</div>`:`<div class="op-now card">${pipeNext(j)}</div>`;})()}
     <div class="wr"><div class="wr-tabs">${T.map(([t,l])=>`<button class="pill${tab===t?" on":""}" data-otab="${t}">${l}</button>`).join("")}</div>${body}</div></div>`;}
 /* ---------- People (board v3, the owner 2026-10-21) ----------
@@ -2479,7 +2484,11 @@ async function submitCard(id,advance){const d=draft[id];
   if(advance)setTimeout(()=>{const n=nextId&&view.querySelector(`textarea[data-note="${CSS.escape(nextId)}"]`);if(n){n.focus();n.scrollIntoView({block:"center",behavior:"smooth"});}else toast("End of the list");},160);}
 function flushNext(id,el){clearTimeout(timers["x"+id]);writeStage(id,{next:el.value});}
 function nextNote(id){const rows=[...view.querySelectorAll("textarea[data-note]")];const i=rows.findIndex(t=>t.dataset.note===id);const n=rows[i+1];if(n){n.focus();n.scrollIntoView({block:"center",behavior:"smooth"});}else{document.activeElement.blur();toast("End of the list");}}
-view.addEventListener("click",async e=>{const t=e.target.closest("[data-edit],[data-reopen],[data-toshort]");if(!t)return;
+view.addEventListener("click",async e=>{const t=e.target.closest("[data-edit],[data-reopen],[data-toshort],[data-pv]");if(!t)return;
+  if(t.dataset.pv){const id=t.dataset.id,v=t.dataset.pv;if(fb(id).v===v)return;
+    if(v==="Pass"){if(t.dataset.armed!=="1"){t.dataset.armed="1";t.textContent="Confirm Pass";setTimeout(()=>{if(t.isConnected){t.dataset.armed="";t.textContent="Pass";}},4000);return;}
+      if(!await writeVerdict(id,{v:"Pass"}))return;await closeOpp(id);toast("Passed. It moves to Past; your note is kept");render();return;}
+    const f=fb(id);if(f.stage==="closed"){f.stage="shortlist";f.outcome="";}if(!await writeVerdict(id,{v:"Pursue"}))return;await promoteOpp(id);toast("Pursue: back on the Shortlist");render();return;}
   if(t.dataset.edit){const id=t.dataset.edit;if(t.dataset.off){EDIT.delete(id);delete draft[id];}else EDIT.add(id);render();return;}
   if(t.dataset.toshort){const id=t.dataset.toshort;const f=fb(id);if(f.stage==="closed"){f.stage="shortlist";f.outcome="";}if(!await writeVerdict(id,{v:"Pursue"}))return;await promoteOpp(id);EDIT.delete(id);delete draft[id];toast("Moved to the Shortlist");render();return;}
   const id=t.dataset.reopen;if(t.dataset.armed!=="1"){t.dataset.armed="1";t.textContent="Confirm: back to review";setTimeout(()=>{if(t.isConnected){t.dataset.armed="";t.textContent="Back to review";}},4000);return;}
