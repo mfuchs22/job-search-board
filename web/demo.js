@@ -25,8 +25,10 @@ window.demoClient = function (src) {
   function load() {
     if (!ready) ready = fetch(src).then(r => { if (!r.ok) throw new Error("demo data " + r.status); return r.json(); }).then(d => {
       const gen = Date.parse((d.generated || "1970-01-01") + "T12:00:00Z");
-      const today = new Date(); today.setUTCHours(12, 0, 0, 0);
-      const delta = Math.round((today.getTime() - gen) / dayMs);
+      /* The viewer's local date, not UTC: the page checks "today" in local time, so a UTC date here showed
+         "No radar today" to anyone west of Greenwich in the evening. */
+      const n = new Date(), today = Date.UTC(n.getFullYear(), n.getMonth(), n.getDate(), 12);
+      const delta = Math.round((today - gen) / dayMs);
       D = shift(d, delta); D.tables = D.tables || {}; return D;
     });
     return ready;
