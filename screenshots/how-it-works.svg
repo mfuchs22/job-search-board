@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="220" viewBox="0 0 960 220" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <rect width="960" height="220" rx="16" fill="#ffffff"/>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#9aa0ae"/>
+    </marker>
+  </defs>
+  <g>
+    <rect x="24" y="40" width="192" height="140" rx="12" fill="#f6f6f8" stroke="#e3e4ea"/>
+    <text x="44" y="74" font-size="12" font-weight="600" fill="#6b7080" letter-spacing="1.2">1 · SCRIPT</text>
+    <text x="44" y="106" font-size="22" font-weight="700" fill="#1c1e26">Collect</text>
+    <text x="44" y="136" font-size="14" fill="#4a4f5c">New postings from</text>
+    <text x="44" y="156" font-size="14" fill="#4a4f5c">job alerts, deduped</text>
+  </g>
+  <line x1="222" y1="110" x2="252" y2="110" stroke="#9aa0ae" stroke-width="2" marker-end="url(#a)"/>
+  <g>
+    <rect x="260" y="40" width="192" height="140" rx="12" fill="#f6f6f8" stroke="#e3e4ea"/>
+    <text x="280" y="74" font-size="12" font-weight="600" fill="#4f46e5" letter-spacing="1.2">2 · MODEL</text>
+    <text x="280" y="106" font-size="22" font-weight="700" fill="#1c1e26">Score</text>
+    <text x="280" y="136" font-size="14" fill="#4a4f5c">Each role read against</text>
+    <text x="280" y="156" font-size="14" fill="#4a4f5c">a versioned rubric</text>
+  </g>
+  <line x1="458" y1="110" x2="488" y2="110" stroke="#9aa0ae" stroke-width="2" marker-end="url(#a)"/>
+  <g>
+    <rect x="496" y="40" width="192" height="140" rx="12" fill="#eef0ff" stroke="#c9ccf7"/>
+    <text x="516" y="74" font-size="12" font-weight="600" fill="#4f46e5" letter-spacing="1.2">3 · YOU</text>
+    <text x="516" y="106" font-size="22" font-weight="700" fill="#1c1e26">Decide</text>
+    <text x="516" y="136" font-size="14" fill="#4a4f5c">Pursue or pass on</text>
+    <text x="516" y="156" font-size="14" fill="#4a4f5c">the board each morning</text>
+  </g>
+  <line x1="694" y1="110" x2="724" y2="110" stroke="#9aa0ae" stroke-width="2" marker-end="url(#a)"/>
+  <g>
+    <rect x="732" y="40" width="204" height="140" rx="12" fill="#f6f6f8" stroke="#e3e4ea"/>
+    <text x="752" y="74" font-size="12" font-weight="600" fill="#1a7f4b" letter-spacing="1.2">4 · MODEL + YOU</text>
+    <text x="752" y="106" font-size="22" font-weight="700" fill="#1c1e26">Pursue</text>
+    <text x="752" y="136" font-size="14" fill="#4a4f5c">Research and drafts</text>
+    <text x="752" y="156" font-size="14" fill="#4a4f5c">overnight; you send</text>
+  </g>
+</svg>
