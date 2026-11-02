@@ -15,7 +15,7 @@ Future, not this build: call prep and outreach writing.
 
 ## 2. Rules carried over (2026-09-03), all kept
 
-- **Nothing reaches the inbox without the deep pass.** A card appears only after the posting has been read: role bullets, qualifications, company blurb, growth read, why and mismatch, deep score. Title-level radar rows never render as cards; they are the "waiting" count in the freshness banner.
+- **Nothing reaches the inbox without the deep pass.** A card appears only after the posting has been read: role bullets, qualifications, company blurb, growth read, why and mismatch, deep score. Title-level radar rows never render as cards; they are the "waiting" count in the freshness banner. A conversation-led role is the exception (`docs/conversation.md`): there is no posting to read, so it renders unscored, with a Conversation badge, pinned above Today, the Shortlist, In Process and the Pipeline, until a title or JD is scored. It is not a title-level row and it does not increment the waiting count.
 - **The current rubric gates every newcomer.** Hard exclusions and the company blocklist first, then points.
 - **Full cards, always.** A reviewed card keeps everything it had; the verdict is added, never swapped in for the content.
 - **One card design, status on every card.** The owner's favourite of the four.

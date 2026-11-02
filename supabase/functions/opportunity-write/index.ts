@@ -101,6 +101,35 @@ async function findPage(ds: string, jobId: string) {
   return res.results?.[0] ?? null;
 }
 
+// Keep in step with conversation.page_key / notion_id. A conversation-led role can name the Opportunities
+// page that already exists (Job ID still empty) so promote writes the id onto it instead of creating another.
+function pageKey(value: string): string {
+  const raw = (value || "").toLowerCase().replace(/[^0-9a-f]/g, "");
+  return raw.length >= 32 ? raw.slice(-32) : "";
+}
+
+function identityUrl(url: unknown): boolean {
+  try {
+    const host = new URL(String(url || "")).hostname.replace(/^www\./, "");
+    return host === "conversation.local" || host === "hand.local";
+  } catch {
+    return !url;
+  }
+}
+
+async function adoptLinked(jobId: string, notionPage: string) {
+  const key = pageKey(notionPage);
+  if (key.length !== 32) return null;
+  const id = `${key.slice(0, 8)}-${key.slice(8, 12)}-${key.slice(12, 16)}-${key.slice(16, 20)}-${key.slice(20)}`;
+  const page = await notion(`/pages/${id}`);
+  const existing = plain(page.properties?.["Job ID"]);
+  if (existing && existing !== jobId) return null;
+  if (existing === jobId) return page;
+  return await notion(`/pages/${page.id}`, "PATCH", {
+    properties: { "Job ID": { rich_text: rich(jobId) } },
+  });
+}
+
 // The Companies page for a name: an exact title match, else created. "X via Recruiter" links to the recruiter,
 // the same rule engine/notion_opps.py uses.
 async function companyPage(ds: string, raw: string) {
@@ -137,13 +166,20 @@ Deno.serve(async (req) => {
     let companyName: string | null = null;
 
     if (action === "promote") {
-      if (page) {  // already there (an un-pursue and pursue again): reopen it on the shortlist
+      if (!page && fields.notion_page) {
+        page = await adoptLinked(id, String(fields.notion_page));
+      }
+      const stageName = page ? plain(page.properties?.["Stage"]) : null;
+      // Reopen only a closed page (an un-pursue and pursue again). A page already at Interviewing, including
+      // one we just adopted, keeps its stage: writing Shortlist over it would drop a live conversation.
+      if (page && (!stageName || stageName === "Closed")) {
         page = await notion(`/pages/${page.id}`, "PATCH", {
           properties: { Stage: { select: { name: "Shortlist" } }, Outcome: { select: null } },
         });
-      } else {
+      } else if (!page) {
         const co = coDs && fields.company ? await companyPage(coDs, String(fields.company)) : null;
         companyName = co?.name ?? null;
+        const posting = identityUrl(fields.url) ? null : (fields.url ?? null);
         page = await notion(`/pages`, "POST", {
           parent: { type: "data_source_id", data_source_id: ds },
           icon: { type: "emoji", emoji: "🎯" },
@@ -154,7 +190,7 @@ Deno.serve(async (req) => {
             "Human Path": { select: { name: "Unchecked" } },
             Score: { number: typeof fields.score === "number" ? fields.score : null },
             Location: { rich_text: rich(String(fields.location ?? "")) },
-            Posting: { url: fields.url ?? null },
+            Posting: { url: posting },
             Board: { url: fields.board ?? null },
             Flag: { checkbox: !!fields.flag },
             "Pursued On": { date: { start: String(fields.verdict_date ?? new Date().toISOString().slice(0, 10)) } },

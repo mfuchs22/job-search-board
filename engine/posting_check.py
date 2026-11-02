@@ -395,7 +395,7 @@ CHECKERS = (
     (re.compile(r"^linkedin\.com$"), check_linkedin, 2),
     (re.compile(r"^builtin(boston)?\.com$"), check_builtin, 1),
 )
-NEVER = re.compile(r"(^|\.)(indeed\.com|glassdoor\.com|hand\.local)$")
+NEVER = re.compile(r"(^|\.)(indeed\.com|glassdoor\.com|hand\.local|conversation\.local)$")
 
 
 def checker_for(url):
@@ -426,10 +426,12 @@ def candidates(rec):
 
 def board_rows(data, cfg):
     """The rows worth checking: on the board, not closed, and not Passed (the owner, 2026-10-07: a passed role is never
-    looked at again)."""
+    looked at again). A conversation-led role with no posting is not checked (engine/conversation.py)."""
+    from conversation import skip_posting_check
     floor = int(cfg.get("min_score", 7))
     return [j for j in data["jobs"]
             if not j.get("excluded") and j.get("stage") != "closed" and j.get("verdict") != "pass"
+            and not skip_posting_check(j)
             and (j.get("verdict") or ((j.get("score") or 0) >= floor and j.get("score_kind") == "deep"))]
 
 

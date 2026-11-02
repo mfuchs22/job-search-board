@@ -10,7 +10,11 @@ jobs.json (run `py engine/ingest_db.py` first so verdicts and stages are current
     py engine/notion_opps.py fill [--dry-run]       write each page's body: the role, what they ask for, the score
                                                     and the warm path, the same read the board shows
 
-Idempotent: a role that already has a page (matched on Job ID) is updated, never duplicated. People come from each
+Idempotent: a role that already has a page is updated, never duplicated. Match order is Job ID, then
+`intake.notion_page` on a conversation-led record, then (only when Job ID is empty) one Opportunities page
+whose company is this firm. Two untitled pages at the same firm, or a link that is not in the database,
+stop the create. A page found by link or company keeps the stage the owner already set; backfill writes the Job ID.
+People come from each
 Network page's "Job board roles" ids; a company is matched on its normalized name and created in Companies when
 missing ("X via Recruiter" links to the recruiter). Meeting suggestions are meetings whose Company is the role's company, or whose People include a person
 linked to the role.
@@ -21,6 +25,7 @@ from datetime import date
 
 import notion
 from common import OUTCOMES, STAGES, load_config, load_jobs, norm, paths, same_company
+from conversation import adopt_only, match_opportunity, posting_url, score_line, sync_action
 from notion import plain, prop, query_all
 from render_dashboard import plan_record
 
@@ -47,9 +52,9 @@ def fields(cfg, j):
         "Next Step Date": prop("date", j.get("next_step_date")),
         "Human Path": prop("select", HP_NAME.get(hp.get("verdict"), "Unchecked")),
         "Human Path People": prop("rich_text", hp.get("people")),
-        "Score": prop("number", j.get("score")),
+        "Score": prop("number", j.get("score") if isinstance(j.get("score"), int) else None),
         "Location": prop("rich_text", j.get("location")),
-        "Posting": prop("url", j.get("url")),
+        "Posting": prop("url", posting_url(j)),
         "Board": prop("url", f"{board}/#job/{j['id']}" if board else None),
         "Flag": prop("checkbox", j.get("flag")),
         "Pursued On": prop("date", j.get("verdict_date")),
@@ -74,7 +79,9 @@ def company_page(companies, name):
 
 def load_world(cfg, tok):
     n = cfg["notion"]
-    opps = {plain(pg["properties"].get("Job ID")): pg for pg in query_all(tok, n["opportunities_data_source"])}
+    pages = query_all(tok, n["opportunities_data_source"])
+    # Keyed by Job ID only when one is set. Empty Job IDs must not collapse into a single dict entry.
+    opps = {plain(pg["properties"].get("Job ID")): pg for pg in pages if (plain(pg["properties"].get("Job ID")) or "").strip()}
     companies = [{"id": pg["id"], "name": plain(pg["properties"].get("Name")) or ""}
                  for pg in query_all(tok, n["companies_data_source"])]
     people = [{"id": pg["id"], "name": plain(pg["properties"].get("Name")),
@@ -84,7 +91,7 @@ def load_world(cfg, tok):
                  "companies": plain(pg["properties"].get("Company")) or [],
                  "people": plain(pg["properties"].get("People")) or []}
                 for pg in query_all(tok, n["meetings_data_source"])]
-    return opps, companies, people, meetings
+    return opps, pages, companies, people, meetings
 
 
 OWN_HEADING = "From the job board"
@@ -100,7 +107,12 @@ def blocks_for(j, plan=None):
     bullet = lambda s: {"type": "bulleted_list_item", "bulleted_list_item": {"rich_text": notion.text(s)}}
     head = lambda s: {"type": "heading_3", "heading_3": {"rich_text": notion.text(s)}}
     out = [head(OWN_HEADING)]
-    facts = [x for x in [f"Score {j.get('score')} ({'deep pass' if j.get('score_kind') == 'deep' else 'title only'})",
+    intake = j.get("intake") if isinstance(j.get("intake"), dict) else {}
+    came = (j.get("kind") == "conversation" and intake.get("person")
+            and f"Came in: {intake.get('person')} / {intake.get('channel')}: {intake.get('reason')}")
+    facts = [x for x in [score_line(j),
+                         came,
+                         j.get("kind") == "conversation" and j.get("priority") == "high" and "Priority: high",
                          j.get("location") and f"Posting location: {j['location']}",
                          j.get("work_model") and f"Work model: {j['work_model']}",
                          j.get("comp") and f"Comp: {j['comp']}",
@@ -124,7 +136,7 @@ def blocks_for(j, plan=None):
         out.append(head("What they ask for"))
         out += [bullet(q) for q in j["qualifications"]]
     if j.get("why") or card.get("math") or j.get("mismatch"):
-        out.append(head("Why it scored"))
+        out.append(head("Why this conversation" if j.get("score_kind") == "conversation" else "Why it scored"))
         if card.get("math"):
             out.append({"type": "code", "code": {"language": "plain text", "rich_text": notion.text(card["math"])}})
         for x in (j.get("why"), j.get("mismatch")):
@@ -145,9 +157,10 @@ def blocks_for(j, plan=None):
         for x in (j.get("note"), j.get("status_note")):
             if x:
                 out.append(para(x))
-    if j.get("url"):
+    url = posting_url(j)
+    if url:
         out.append({"type": "paragraph", "paragraph": {"rich_text": [
-            {"type": "text", "text": {"content": "The posting", "link": {"url": j["url"]}}}]}})
+            {"type": "text", "text": {"content": "The posting", "link": {"url": url}}}]}})
     return out
 
 
@@ -208,24 +221,43 @@ def backfill(a):
     tok = notion.token(cfg)
     n = cfg["notion"]
     pursue = [j for j in load_jobs(p)["jobs"] if j.get("verdict") == "pursue"]
-    opps, companies, people, meetings = load_world(cfg, tok)
+    opps, pages, companies, people, meetings = load_world(cfg, tok)
     names = {x["id"]: x["name"] for x in people}
-    print(f"{len(pursue)} Pursue roles; {len(opps)} Opportunities pages exist; "
+    print(f"{len(pursue)} Pursue roles; {len(pages)} Opportunities pages exist; "
           f"{len(companies)} companies, {len(people)} people, {len(meetings)} meetings in Notion\n")
 
-    made = updated = linked_m = 0
+    made = updated = linked_m = skipped = 0
     for j in sorted(pursue, key=lambda j: (j.get("company") or "").lower()):
         props = fields(cfg, j)
         co = company_page(companies, company_name(j))
         who = [x["id"] for x in people if j["id"] in x["roles"]]
         mt = [m for m in meetings if (co and co["id"] in m["companies"]) or set(who) & set(m["people"])]
-        page = opps.get(j["id"])
-        verb = "update" if page else "create"
+        found = match_opportunity(j, pages, companies, plain)
+        action = sync_action(found)
+        page = found["page"]
+        if action == "stop":
+            skipped += 1
+            why = ("linked Notion page is not in Opportunities"
+                   if found["how"] == "missing_link"
+                   else f"{len(found['pages'])} untitled pages match {j.get('company')}; pass --notion-page")
+            print(f"stop   {j['id']}  {j.get('title')} · {j.get('company')}  ({why})")
+            continue
+        verb = "update" if action == "update" else "create"
+        if adopt_only(found):
+            # The page already has the owner's stage, lane and next step. Write the join key, not those.
+            props = {"Job ID": prop("rich_text", j["id"]), "Board": props["Board"], "Posting": props["Posting"]}
+            if isinstance(j.get("score"), int):
+                props["Score"] = prop("number", j["score"])
         print(f"{verb:6} {j['id']}  {j.get('title')} · {j.get('company')}  [{STAGE_NAME.get(j.get('stage') or 'shortlist')}]")
         print(f"         company: {co['name'] if co else 'NEW ' + company_name(j)}"
               f"{'   people: ' + ', '.join(names[i] or '?' for i in who) if who else ''}")
         for m in mt:
             print(f"         meeting? {m['date'] or '----------'}  {m['name']}")
+        if page and found["how"] != "job_id":
+            print(f"         link existing page ({found['how']}); stage, lane and next step stay as they are")
+        if page:
+            # The local copy grows a Job ID so the next role in this run cannot adopt the same page.
+            page.setdefault("properties", {})["Job ID"] = {"type": "rich_text", "rich_text": [{"plain_text": j["id"]}]}
         if a.dry_run:
             continue
         if not co:
@@ -246,9 +278,10 @@ def backfill(a):
             res = notion.call(tok, "/pages", {"parent": {"data_source_id": n["opportunities_data_source"]},
                                               "icon": {"type": "emoji", "emoji": "🎯"}, "properties": props}, "POST")
             opps[j["id"]] = res
+            pages.append(res)
             made += 1
     if not a.dry_run:
-        print(f"\ncreated {made}, updated {updated}" + (f", {linked_m} meeting links" if a.meetings else ""))
+        print(f"\ncreated {made}, updated {updated}, skipped {skipped}" + (f", {linked_m} meeting links" if a.meetings else ""))
 
 
 def main():

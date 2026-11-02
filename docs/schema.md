@@ -6,16 +6,17 @@
 {"asof": "2026-09-03", "jobs": [ <record>, ... ]}
 ```
 
-One record per posting. Written only by `engine/build.py`, `engine/apply_deep_pass.py`, and `engine/ingest_db.py`.
+One record per role. Written by `engine/build.py`, `engine/apply_deep_pass.py`, `engine/ingest_db.py`, and `engine/add_role.py` (a role that did not come through the radar, including a conversation-led one).
 
 | Field | Meaning |
 |---|---|
 | `id` | first 10 hex of sha1 over the canonical URL; stable for the life of the record |
 | `aliases` | other canonical URLs folded into this record (same posting, another location or board) |
 | `url`, `title`, `company`, `company_key`, `location`, `comp` | the posting; `company_key` is the join key into `people.json` and `companies.json` |
-| `source` | `board:alert_name` from the radar, `baseline-<date>` from a deep pass, or `hand` |
+| `source` | `board:alert_name` from the radar, `baseline-<date>` from a deep pass, `hand`, or `recruiter:` / `network:` / `referral:` plus a slug from `add_role.py` |
+| `kind`, `priority`, `intake` | set together when `engine/build.py` ingests a conversation (`data/conversations.json`, or an Opportunities page with a stage, no Job ID, and no posting). `engine/add_role.py --conversation` is the fallback and implies `verdict: pursue`. `kind` is `conversation` for the life of the record. `priority` defaults to `high`. `intake` is `{person, channel, reason, summary, contact, notion_page, priority, upgraded, title_at_intake, url_at_intake}`: summary is the call notes standing in for the JD; `notion_page` is the existing Opportunities page; `upgraded` is the day a real title or posting was recorded, or the day a rubric score landed. The id is the sha1 of `https://conversation.local/<company>/<person>/<date>/<reason>`, not of the title, so an upgrade keeps it and the identity URL moves to `aliases` |
 | `date_first_seen` | ISO date the posting entered the funnel |
-| `score`, `score_kind` | rubric score; `deep` (posting read) or `title` (radar, provisional) |
+| `score`, `score_kind` | rubric score; `deep` (posting read) or `title` (radar, provisional). `conversation` is the unscored state for a role with no posting: `score` is null until a deep pass reads a title or JD. It is not a provisional rubric number |
 | `why`, `mismatch` | one line each from the scorer |
 | `card` | deep-pass extras for the page: `math` (rubric arithmetic), `job` (bullets), `note` (alert chip) |
 | `work_model`, `travel`, `qualifications`, `role_type`, `deep_pass_date`, `fetched` | deep-pass facts (see `docs/deep-pass.md`) |

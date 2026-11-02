@@ -15,6 +15,8 @@ files the board's mirrors are pushed from:
                                          "edited"}]}   (Area career and not Complete: what the To-dos tab shows)
 
 `id` on an opportunity is the board record id (Notion's "Job ID"), so the page joins a card to its Notion page.
+A page with no Job ID is not a mirror row (the table is keyed on that id). One with no Job ID, no posting,
+and a stage is a conversation the owner opened by hand: it is kept on `untitled` and build.py mints the record.
 Meeting transcripts are not pulled. build.py calls refresh() before the push; push_board.py mirrors the four files
 into the Supabase `contacts`, `opportunities`, `meetings` and `tasks` tables on the 04:30 refresh and on Sync
 now, through notion_mirror.py. Between refreshes, supabase/functions/notion-hook writes the same row shape
@@ -32,6 +34,7 @@ from urllib.error import URLError
 import notion
 import network_notion
 from common import load_config, paths
+from conversation import untitled_is_conversation
 from notion import plain, query_all
 
 STAGE = {"Shortlist": "shortlist", "Researching": "researching", "Outreach": "outreach", "Applied": "applied",
@@ -99,6 +102,38 @@ TASK_FILTER = {"filter": {"and": [{"property": "Area", "select": {"equals": "car
                                   {"property": "Project", "select": {"does_not_equal": "Consulting"}}]}}
 
 
+def untitled_row(page, company_names):
+    """One Opportunities page as intake sees it, including a page whose Job ID is still empty."""
+    P = page.get("properties") or {}
+    g = lambda k: plain(P.get(k))
+    co = g("Company") or []
+    if isinstance(co, str):
+        co = [co]
+    return {"page": page.get("id"), "url": page.get("url"), "name": g("Name") or "",
+            "job_id": (g("Job ID") or "").strip(), "posting": (g("Posting") or "").strip(),
+            "stage": STAGE.get(g("Stage")), "next": g("Next Step"), "next_date": g("Next Step Date"),
+            "hp": HP.get(g("Human Path")), "hp_people": g("Human Path People"),
+            "location": g("Location"), "pursued": g("Pursued On"),
+            "company_name": company_names.get(co[0]) if co else None,
+            "edited": page.get("last_edited_time")}
+
+
+def split_opportunities(pages, company_names):
+    """(pages for the Job-ID mirror, conversation rows with no Job ID).
+
+    The mirror cannot store an empty id. A conversation page stays in `untitled` until build.py writes
+    its Job ID; the next pull then joins it like any other Pursue.
+    """
+    linked, untitled = [], []
+    for pg in pages:
+        row = untitled_row(pg, company_names)
+        if untitled_is_conversation(row):
+            untitled.append(row)
+        else:
+            linked.append(pg)
+    return linked, untitled
+
+
 def one_per_job(opps):
     """One Opportunities page per Job ID, plus the extra pages. Two pages can share a Job ID when Pursue reaches
     opportunity-write twice before Notion's query sees the first page (Bain, 2026-10-22), and the opportunities
@@ -119,7 +154,9 @@ def pull(cfg, p):
     contacts = network_notion.pull(cfg, p)
     names = {pg["id"]: plain((pg.get("properties") or {}).get("Name"))
              for pg in query_all(tok, notion.source(cfg, "companies_data_source"))}
-    opps = [opportunity(pg, names) for pg in query_all(tok, notion.source(cfg, "opportunities_data_source"))]
+    pages = query_all(tok, notion.source(cfg, "opportunities_data_source"))
+    linked, untitled = split_opportunities(pages, names)
+    opps = [opportunity(pg, names) for pg in linked]
     opps, extra = one_per_job([o for o in opps if o["id"]])
     for o in extra:
         print(f"notion_sync: a second Opportunities page for {o['id']} ({o['url']}); the board keeps one, archive the other",
@@ -137,7 +174,7 @@ def pull(cfg, p):
     for o in opps:
         was = prev.get(o["id"]) or {}
         o["lane_since"] = was.get("lane_since") if was.get("lane") == o["lane"] and was.get("lane_since") else asof[:10]
-    write(opps_file(p), {"asof": asof, "opps": opps, "duplicates": [o["url"] for o in extra]})
+    write(opps_file(p), {"asof": asof, "opps": opps, "duplicates": [o["url"] for o in extra], "untitled": untitled})
     write(meetings_file(p), {"asof": asof, "meetings": meets})
     write(tasks_file(p), {"asof": asof, "tasks": tasks})
     return contacts, {"asof": asof, "opps": opps}, {"asof": asof, "meetings": meets}, {"asof": asof, "tasks": tasks}

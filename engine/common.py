@@ -276,6 +276,16 @@ def merge_duplicates(data):
     for key, js in groups.items():
         if len(js) < 2:
             continue
+        # An open conversation has no posting to share with a radar row, and its placeholder title must not
+        # swallow a different role at the same firm. Once it is upgraded, a real title can merge as usual
+        # (the Pursue survives). Keep this check in step with conversation.awaiting_jd.
+        def _open(j):
+            intake = j.get("intake") if isinstance(j.get("intake"), dict) else {}
+            return j.get("kind") == "conversation" and j.get("score_kind") != "deep" and not intake.get("upgraded")
+        if any(_open(j) for j in js):
+            js = [j for j in js if not _open(j)]
+        if len(js) < 2:
+            continue
         # A Pursue is always the survivor (2026-10-07: the first run of the looser company match folded the owner's one firm
         # Pursue into the twin he had passed on because the Pass was seen first); then any verdict or job file; then age.
         rank = {"pursue": 0, "maybe": 1, "pass": 2}

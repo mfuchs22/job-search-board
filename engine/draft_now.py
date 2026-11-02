@@ -31,6 +31,7 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import load_config, load_jobs, by_id, paths  # noqa: E402
 import supabase as sb  # noqa: E402
+from conversation import skip_materials  # noqa: E402
 from pursue_followup import fold_inputs, job_slug, set_next  # noqa: E402
 
 RUN_MINUTES = 45
@@ -159,14 +160,18 @@ def kick_plans(cfg, p):
         return None
     opps = {r["id"]: r.get("payload") or {} for r in
             sb.select("opportunities", {"select": "id,payload", "id": f"in.({','.join(ids)})"}, cfg=cfg)}
-    rows = []
+    rows, held = [], []
     for i in ids:
         o, j = opps.get(i, {}), idx.get(i)
         if not j or o.get("stage") == "closed" or (o.get("lane") or "active") != "active":
             continue  # benched, paused or closed by the answer itself: nothing to draft
+        if skip_materials(j):
+            held.append(j.get("company") or i)  # no resume or cover until a JD is scored
+            continue
         rows.append({"id": i, "company": j.get("company") or "", "title": j.get("title") or "", "slug": job_slug(j)})
     if not rows:
-        return f"folded {len(ids)} plan answers; none wants drafts"
+        extra = f" ({', '.join(held)} still conversation-led)" if held else ""
+        return f"folded {len(ids)} plan answers; none wants drafts{extra}"
     now = datetime.now(timezone.utc)
     today = now.astimezone(ET).date().isoformat()
     clock = now.astimezone(ET).strftime("%I:%M %p").lstrip("0")

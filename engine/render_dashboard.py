@@ -335,7 +335,7 @@ FIELDS = ("id", "url", "title", "company", "company_key", "location", "work_mode
           "score_kind", "why", "mismatch", "flag", "verdict", "verdict_date", "verdict_ts", "calibration", "note",
           "status_note", "stage", "stage_date", "stage_ts", "outcome", "next_step", "next_step_date", "job_file",
           "date_first_seen", "source", "role_type", "qualifications", "excluded", "deep_pass_date", "rubric_version", "human_path", "office",
-          "posting")
+          "posting", "kind", "priority", "intake")
 
 
 def page_record(j, docs, extras=None):
@@ -407,7 +407,9 @@ def board_payload(cfg, p, data, health=None):
     all_jobs = data["jobs"]
     # Live = on the board: excluded (collapsed list), reviewed, or at/above the floor with the deep pass done.
     # Title-level radar rows at 7+ never render as cards (rule 1, 2026-09-03); they are the waiting_deep_pass count.
-    live = [j for j in all_jobs if j.get("excluded") or j.get("verdict")
+    # A conversation-led role has no rubric score and still renders: it is already in motion, and burying it
+    # with the unscored radar rows is the failure this state exists to avoid (engine/conversation.py).
+    live = [j for j in all_jobs if j.get("excluded") or j.get("verdict") or j.get("kind") == "conversation"
             or ((j.get("score") or 0) >= min_score and j.get("score_kind") == "deep")]
     docs = {j["id"]: render_job_md(p.vault, j["job_file"]) for j in live if j.get("job_file")}
     extras = {j["id"]: {"campaign": campaign_record(p.vault, j["job_file"]), "timeline": timeline_rows(p.vault, j["job_file"]),

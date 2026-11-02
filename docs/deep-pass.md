@@ -4,7 +4,7 @@ The deep pass is the step that turns a radar row (title, company, location, a pr
 
 ## Who gets a deep pass
 
-Records in `jobs.json` with `score_kind == "title"`, `score >= min_score`, no `deep_pass_date`, not `excluded`, no `verdict`. `build.py` ingests inbox.csv first, so run it (with `--no-push`) before selecting.
+`py engine/apply_deep_pass.py --list` prints them. That is the radar rule (records with `score_kind == "title"`, `score >= min_score`, no `deep_pass_date`, not `excluded`, no `verdict`) plus one more set: a conversation-led role whose `intake.upgraded` is set and which still has no deep score, even when it is already a Pursue. An open conversation (no title and no posting yet) is not listed and must not be given a rubric score from the call notes. `build.py` ingests inbox.csv first, so run it (with `--no-push`) before selecting.
 
 ## Inputs
 

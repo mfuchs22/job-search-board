@@ -14,7 +14,9 @@ The agreed post-Pursue workflow (2026-10-20, the Job Board App project's workflo
 gets quick research on its own (a warm-path check and a `/diligence <company> quick` pass), Bench included; an Active
 role also gets its opportunity folder and a short plan in campaign.md, and the plan goes to the owner as one card before
 anything personal is drafted. the owner's answer to that card (route plus notes, saved under `## the owner's input`) makes the
-drafts owed. This script decides what is owed from the vault and the last Notion pull (network/opportunities.json,
+drafts owed. A conversation-led role with no scored JD (`conversation.skip_materials`) does not owe those drafts:
+no resume and no cover letter. The row carries `skip_materials` so the routine can see it. Diligence, the plan,
+interview prep and the rest are unchanged. This script decides what is owed from the vault and the last Notion pull (network/opportunities.json,
 refreshed by every build); the nightly `pursue-followup` routine (Personal-OS Tools/pursue-followup-prompt.md) does
 the work. Nothing here sends anything, and nothing here decides a verdict; a stage moves only from --set --stage, which
 the interactive /interview-prep skill uses when a round is booked.
@@ -34,6 +36,7 @@ from pathlib import Path
 
 import notion
 from common import load_config, paths, load_jobs, by_id
+from conversation import materials_owed, skip_materials
 from notion_sync import load as load_notion, opps_file
 from render_dashboard import log_rows, meeting_rows, plan_record
 from notion_sync import meetings_file
@@ -195,7 +198,7 @@ def build(cfg, cap, lanes=False, dry=False):
             plan, answered, drafts = plan_state(p.vault, s)
             if not plan:
                 need.append("plan")
-            elif answered and not drafts:
+            elif materials_owed(j, answered, drafts):
                 need.append("drafts")
         if s and o["stage"] not in EARLY:
             # An interview booked (an Invite row the mail step logged, dated from yesterday on) with no prep file written
@@ -217,6 +220,8 @@ def build(cfg, cap, lanes=False, dry=False):
             "human_path": hp or o.get("hp"), "hp_people": o.get("hp_people"),
             "next": o.get("next"), "next_date": o.get("next_date"), "note": j.get("note") or "",
             "verdict_date": j.get("verdict_date"), "need": need,
+            "conversation": j.get("kind") == "conversation",
+            "skip_materials": skip_materials(j),
         })
     # Active first (it is where the owner's next decisions come from), then the newest Pursue: what he just chose is what
     # he most expects to see move.
