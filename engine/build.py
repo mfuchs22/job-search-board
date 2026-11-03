@@ -266,6 +266,13 @@ def main():
         except (SystemExit, OSError, ValueError, KeyError) as e:
             n_linked = 0
             print(f"conversation: Job ID link failed ({e})")
+        # Outreach done outside the board (the Grok bot, the nightly Gmail read) goes into Notion before the pull
+        # (engine/bot_actions.py, 2026-11-02), so this run's people already carry the touch.
+        try:
+            from bot_actions import fold as fold_bot_actions
+            fold_bot_actions(cfg)
+        except (SystemExit, OSError, ValueError, KeyError) as e:
+            print(f"bot actions: fold failed ({e})")
         notion_msg = refresh_notion(cfg, p)[1]
         live = entries_from_untitled((load_notion_file(opps_file(p), "opps") or {}).get("untitled") or [],
                                      date.today().isoformat())

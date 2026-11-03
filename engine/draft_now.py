@@ -2,6 +2,7 @@
 
     py engine/draft_now.py            fold any new plan answers and, if one wants drafts, start Claude on it now
     py engine/draft_now.py --status   print the run in flight, or the last one
+    py engine/draft_now.py --inline   the same, but print the work for the Claude session already running (cloud)
 
 the owner, 2026-10-23: "if it says 'Claude is drafting,' Claude should be drafting in the moment. It shouldn't be waiting
 for an overnight batch... real-time triggers: when status A changes, action B occurs." Before this, an answer on a
@@ -36,6 +37,9 @@ from pursue_followup import fold_inputs, job_slug, set_next  # noqa: E402
 
 RUN_MINUTES = 45
 ET = ZoneInfo("America/New_York")
+# A cloud run (the board-sync scheduled task, 2026-11-02) is already a Claude session: --inline writes the prompt to
+# .draft-now/inline-prompt.md and prints it instead of starting a second `claude -p`, and the session does the work.
+INLINE = "--inline" in sys.argv or os.environ.get("DRAFT_NOW_INLINE") == "1"
 
 
 def state_file(p):
@@ -45,6 +49,8 @@ def state_file(p):
 
 def busy(p):
     """The run in flight, or None. A pid that is gone, or a run past RUN_MINUTES, no longer counts."""
+    if INLINE:
+        return None
     f = state_file(p)
     if not f.exists():
         return None
@@ -100,6 +106,12 @@ def brief_prompt(asks, today):
 def launch(cfg, p, text, keys, now):
     f = state_file(p)
     f.parent.mkdir(parents=True, exist_ok=True)
+    if INLINE:
+        out = f.parent / "inline-prompt.md"
+        with out.open("a", encoding="utf-8") as w:
+            w.write(f"\n## {now.isoformat(timespec='seconds')} {', '.join(keys)}\n\n{text}\n")
+        print(f"DO THIS NOW ({', '.join(keys)}):\n{text}\n")
+        return "inline"
     logs = Path.home() / "Library" / "Logs" / "fleet"
     log = (logs if logs.exists() else f.parent) / "draft-now.log"
     with open(log, "a", encoding="utf-8") as out:

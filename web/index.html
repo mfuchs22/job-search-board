@@ -1800,7 +1800,14 @@ function checkMarks(){let items=null;for(const [key,m] of Object.entries(MARKS))
   if(kind==="person"){const c=CONTACTS.find(x=>x.id===id);if(c&&moved&&c.last_date&&c.last_date>=day)how="touch logged";}
   else if(kind==="role"){if(moved&&o.ball==="them")how="sent; ball with them";else if(byId[id]&&isClosed(byId[id]))how="closed";}
   else if(kind==="plan"){if(m.act==="plan"&&o.ball&&o.ball!=="claude")how="drafts ready";}
-  if(how){MARK_SEEN.add(key);markDone(key,how);}}}
+  if(how){MARK_SEEN.add(key);markDone(key,how);}}
+  /* A person the owner only ranked (no pick) is done the same way once a touch is logged on or after the rank and the next touch
+     is not due yet: outreach sent outside the board (the Grok bot, Gmail) lands in Notion, and the card should go with it
+     (the owner, 2026-11-02, Chrissie Gorman Francona's card stayed after he emailed her). */
+  for(const [key,m] of Object.entries(MARKS)){if(m.picked_at||m.done_at||m.rank==null||MARK_SEEN.has(key))continue;
+    const [kind,id]=tdSplit(key);if(kind!=="person")continue;const c=CONTACTS.find(x=>x.id===id);const day=String(m.ts||"").slice(0,10);
+    if(!c||!c.last_date||!day||c.last_date<day||(c.next_date&&c.next_date<=todayIso()))continue;
+    MARK_SEEN.add(key);markDone(key,"touch logged");}}
 function todayRank(key,dir){const top=todayParts().top.map(rKey);const pinned=top.filter(k=>rankOf(k)!=null);let order;
   if(dir==="off"){markPut([{key,rank:null}]);toast("Back in the computed order");return;}
   if(dir==="top")order=[key,...pinned.filter(k=>k!==key)];

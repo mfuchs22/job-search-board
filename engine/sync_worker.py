@@ -3,6 +3,8 @@
     py engine/sync_worker.py            # take the oldest pending request, run it, exit (launchd runs this every 2 min)
     py engine/sync_worker.py --loop     # the same, forever, two minutes apart (a Windows logon task)
     py engine/sync_worker.py --status   # print the last five requests
+    py engine/sync_worker.py --all --no-draft   # a cloud run (SYNC_HOST set): every waiting request, drafts left
+                                                # to the session (Personal-OS Tools/board-sync-prompt.md)
 
 The page inserts a `sync_requests` row (status requested, an optional note). This worker, on the always-on host,
 claims it (requested -> running, atomically, so two hosts never both take it), then does the deterministic part of
@@ -16,6 +18,7 @@ campaign.md and, when the role still wants drafts, a headless Claude run starts 
 
 Single-writer rule: this is the only writer of sync_requests rows past `requested`.
 """
+import os
 import re
 import socket
 import subprocess
@@ -31,7 +34,7 @@ import supabase as sb  # noqa: E402
 import draft_now  # noqa: E402
 
 ENGINE = Path(__file__).resolve().parent
-HOST = socket.gethostname().split(".")[0]
+HOST = os.environ.get("SYNC_HOST") or socket.gethostname().split(".")[0]   # "the cloud" on a scheduled task
 STALE_MINUTES = 30      # a `running` row older than this was abandoned (the host died mid-run)
 ET = ZoneInfo("America/New_York")
 CLOCK = "%#I:%M %p" if sys.platform == "win32" else "%-I:%M %p"
@@ -123,7 +126,16 @@ def commit_vault(p, message, extra_paths=()):
     return "committed and pushed" if code == 0 else f"committed; push failed: {out[-200:]}"
 
 
-def post_discord(p, text):
+def post_discord(p, text, cfg=None, ping=False):
+    """One line for the owner. Since 2026-11-02 a row in Supabase `notifications` (engine/notify.py), which his career
+    coach bot reads; Discord only on a machine that still has Personal-OS Tools/discord_post.py and no cloud flag."""
+    if cfg is not None and os.environ.get("SYNC_HOST"):
+        try:
+            import notify
+            notify.post(cfg, "board-sync", text, ping=ping)
+        except (OSError, SystemExit, ValueError) as e:
+            print(f"notification failed: {e}")
+        return
     script = p.personal_os / "Tools" / "discord_post.py"
     if not script.exists():
         return
@@ -177,19 +189,21 @@ def do_sync(cfg, p, req):
     lines += [f"  {l}" for l in folded_lines[:12]]
     if noted:
         lines.append(f"  Note logged to the feedback file: \"{' '.join(req['note'].split())[:300]}\"")
-    post_discord(p, "\n".join(lines))
+    post_discord(p, "\n".join(lines), cfg)
     return summary
 
 
-def once(cfg, p):
+def once(cfg, p, drafts=True):
     touch_last_run()
     # A plan answered on the board starts its drafts now, not at 01:30 (the owner, 2026-10-23; engine/draft_now.py).
-    try:
-        line = draft_now.kick(cfg, p)
-        if line:
-            print(line)
-    except (RuntimeError, OSError, SystemExit, subprocess.TimeoutExpired, ValueError, KeyError) as e:
-        print(f"draft on answer failed: {e}")
+    # A cloud run passes --no-draft and runs `draft_now.py --inline` itself (Personal-OS Tools/board-sync-prompt.md).
+    if drafts:
+        try:
+            line = draft_now.kick(cfg, p)
+            if line:
+                print(line)
+        except (RuntimeError, OSError, SystemExit, subprocess.TimeoutExpired, ValueError, KeyError) as e:
+            print(f"draft on answer failed: {e}")
     req = claim(cfg)
     if not req:
         return False
@@ -202,7 +216,7 @@ def once(cfg, p):
         msg = f"{e}"[:1000] or f"failed on {HOST} without a message"
         patch(cfg, req["id"], {"status": "failed", "finished_at": now_iso(), "result": msg})
         print(f"failed: {msg}")
-        post_discord(p, f"Board sync from the page failed on {HOST}: {msg}")
+        post_discord(p, f"Board sync from the page failed on {HOST}: {msg}", cfg, ping=True)
     return True
 
 
@@ -219,7 +233,12 @@ def main():
         while True:
             once(cfg, p)
             time.sleep(120)
-    once(cfg, p)
+    drafts = "--no-draft" not in sys.argv
+    if "--all" in sys.argv:            # a cloud run: take every waiting request, not just the oldest
+        while once(cfg, p, drafts):
+            drafts = False
+        return
+    once(cfg, p, drafts)
 
 
 if __name__ == "__main__":

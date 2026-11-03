@@ -478,7 +478,7 @@ def link_pages(cfg, jobs):
     import notion
     from notion import plain, prop
     ncfg = cfg.get("notion") or {}
-    if not ncfg.get("token_file"):
+    if not (ncfg.get("token_file") or ncfg.get("token")):
         return 0
     tok = notion.token(cfg)
     board = (ncfg.get("board_url") or "").rstrip("/")

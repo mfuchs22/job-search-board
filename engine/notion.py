@@ -22,6 +22,8 @@ _last = [0.0]
 
 def token(cfg):
     n = cfg.get("notion") or {}
+    if n.get("token"):  # a cloud run: NOTION_TOKEN from the environment (common.cloud_config)
+        return n["token"].strip()
     if not n.get("token_file"):
         raise SystemExit("config.json notion block needs token_file (see config.example.json)")
     return Path(n["token_file"]).expanduser().read_text(encoding="utf-8").strip()

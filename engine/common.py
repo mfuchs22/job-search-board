@@ -59,10 +59,50 @@ def _resolve_op(value):
     return _OP_CACHE[value]
 
 
+def _find_vault():
+    """The vault for a cloud run: $JOBS_VAULT, else a Personal-OS checkout beside this repo."""
+    if os.environ.get("JOBS_VAULT"):
+        return Path(os.environ["JOBS_VAULT"]).expanduser()
+    for name in ("Personal-OS", "personal-os"):
+        v = REPO.parent / name / "Projects" / "job-search"
+        if v.is_dir():
+            return v
+    return None
+
+
+def cloud_config():
+    """config.json for a machine that has none (a cloud scheduled task, a GitHub Action; 2026-11-02).
+
+    The settings that are not secret (data source ids, floors, the board's URL) live in the vault at
+    meta/engine.json (paths in it relative to Personal-OS); the secrets come from the environment:
+    SUPABASE_SECRET_KEY and NOTION_TOKEN (SUPABASE_URL overrides the file's URL when set).
+    Returns None when there is no vault to read, so load_config can give its usual error."""
+    vault = _find_vault()
+    if not vault or not (vault / "meta" / "engine.json").exists():
+        return None
+    cfg = json.loads((vault / "meta" / "engine.json").read_text(encoding="utf-8"))
+    cfg["vault"] = str(vault)
+    cfg.setdefault("personal_os", str(vault.parents[1]))
+    if cfg.get("dyc_directory") and not Path(cfg["dyc_directory"]).is_absolute():
+        cfg["dyc_directory"] = str(Path(cfg["personal_os"]) / cfg["dyc_directory"])
+    sb = cfg.setdefault("supabase", {})
+    if os.environ.get("SUPABASE_URL"):
+        sb["url"] = os.environ["SUPABASE_URL"]
+    if os.environ.get("SUPABASE_SECRET_KEY"):
+        sb["service_key"] = os.environ["SUPABASE_SECRET_KEY"]
+    if os.environ.get("NOTION_TOKEN"):
+        cfg.setdefault("notion", {})["token"] = os.environ["NOTION_TOKEN"]
+    return cfg
+
+
 def load_config():
     p = REPO / "config.json"
     if not p.exists():
-        raise SystemExit("config.json missing: copy config.example.json to config.json and set the vault path")
+        cfg = cloud_config()
+        if cfg is None:
+            raise SystemExit("config.json missing: copy config.example.json to config.json and set the vault path "
+                             "(or, on a cloud run, check out Personal-OS beside this repo; see docs/cloud.md)")
+        return cfg
     return _resolve_op(json.loads(p.read_text(encoding="utf-8")))
 
 
